@@ -1,0 +1,693 @@
+---
+title: 'Minería de datos: PEC1'
+author: "Autor: Vinicio Alejandro Naranjo Mosquera"
+date: "Marzo 2024"
+output:
+  pdf_document:
+    highlight: zenburn
+    toc: yes
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+    includes:
+      in_header: 75.584-PEC-header.html
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+*****
+# Ejemplo guiado
+*****
+No se trata de una pauta para repetir sino diferentes ejemplos para daros ideas e inspiraros.
+
+
+******
+## Descripción del origen del conjunto de datos
+******
+
+Se ha seleccionado un conjunto de datos del [National Highway Traffic Safety Administration](https://www.nhtsa.gov/). El sistema de informes de análisis de mortalidad fue creado en los Estados Unidos por la National Highway Traffic Safety Administration para proporcionar una medida global de la seguridad en las carreteras. (Fuente Wikipedia). Los datos pertenecen al año 2020. Se trata de un conjunto de registros de accidentes que recogen datos significativos que los describen. Todos los accidentes tienen alguna víctima mortal como mínimo. El objetivo analítico que tenemos en mente es entender que hace que un accidente sea grave y que quiere decir que sea grave. https://www.nhtsa.gov/crash-data-systems/fatality-analysis-reporting-system
+
+
+## Análisis exploratorio
+
+Queremos hacer una primera aproximación al conjunto de datos escogido y responder a las preguntas más básicas: ¿Cuánto registros tiene? ¿Cuántas variables? ¿De qué tipología son? ¿Cómo se distribuyen los valores de las variables? ¿Hay problemas con los datos, por ejemplo, campos vacíos? ¿Puedo intuir ya el valor analítico de los datos? ¿Qué primeras conclusiones puedo extraer?
+
+El primer paso para realizar un análisis exploratorio es cargar el fichero de datos.
+
+```{r}
+path = 'accident.CSV'
+accidentData <- read.csv(path, row.names=NULL)
+```
+
+### Exploración del conjunto de datos
+
+Verificamos la estructura del juego de datos principal. Vemos el número de columnas que tenemos y ejemplos de los contenidos de las filas.
+```{r}
+structure = str(accidentData)
+```
+
+Vemos que tenemos **81** variables y **35766** registros
+
+Revisamos la descripción de las variables contenidas en el fichero y si los tipos de variables se corresponden con las que hemos cargado. Las organizamos lógicamente para darles sentido y construimos un pequeño diccionario de datos utilizando la documentación auxiliar.
+
+
++ **ST_CASE** identificador de accidente
+
+**HECHOS A ESTUDIAR**
+
++ **FATAL** muertes
++ **DRUNK_DR** conductores bebidos
++ **VE_TOTAL** número de vehículos implicados en total
++ **VE_FORMS** número de vehículos en movimiento implicados
++ **PVH_INVL** número de vehículos estacionados implicados
++ **PEDS** número de peatones implicados
++ **PERSONS** número de ocupantes de vehículo implicados
++ **PERMVIT** número conductores y ocupantes implicados
++ **PERNOTMVIT** número peatones, ciclistas, a caballo... Cualquier cosa menos vehículo motorizado
+
+**DIMENSIÓN GEOGRÁFICA**
+
++ **STATE** codificación de estado
++ **STATENAME** nombre de estado
++ **COUNTY** identificador de contado
++ **COUNTYNAME** condado
++ **CITY** identificador de ciudad
++ **CITYNAME** ciudad
++ **NHS** 1 ha pasado a autopista del NHS 0 no
++ **NHSNAME** TBD
++ **ROUTE** identificador de ruta
++ **ROUTENAME** ruta
++ **TWAY_ID** vía de tránsito (1982)
++ **TWAY_ID2** vía de tránsito (2004)
++ **RUR_URB** identificador de segmento rural o urbano
++ **RUR_URBNAME** segmento rural o urbano
++ **FUNC_SYS** clasificación funcional segmento
++ **FUNC_SYSNAME** TBD
++ **RD_OWNER** identificador propietario del segmento
++ **RD_OWNERNAME** propietario del segmento
++ **MILEPT** milla int
++ **MILEPTNAME** milla chr
++ **LATITUDE** latitud int
++ **LATITUDENAME** latitud chr
++ **LONGITUD** longitud int
++ **LONGITUDNAME** longitud chr
++ **SP_JUR** código jurisdicción
++ **SP_JURNAME** jurisdicción
+
+**DIMENSIÓN TEMPORAL**
+
++ **DAY** día
++ **DAYNAME** día repetido
++ **MONTH** mes
++ **MONTHNAME** nombre de mes
++ **YEAR** año
++ **DAY_WEEK** día de la semana
++ **DAY_WEEKNAME** nombre de día de la semana
++ **HOUR** hora
++ **HOURNAME** franja hora
++ **MINUTE** minuto int
++ **MINUTENAME** minuto chr
+
+**DIMENSIÓN CONDICICIONES ACCIDENTE**
+
++ **HARM_EV** código primer acontecimiento del accidente que produzca daños o lesiones
++ **HARM_EVNAME** primer acontecimiento del accidente que produzca daños o lesiones
++ **MAN_COLL** código de posición de los vehículos
++ **MAN_COLLNAME** posición de los vehículos
++ **RELJCT1** código si hay área de intercambio
++ **RELJCT1NAME** si hay área de intercambio
++ **RELJCT2** código proximidad cruce
++ **RELJCT2NAME** proximidad cruce
++ **TYP_INT** código tipo de intersección
++ **TYP_INTNAME** tipo de intersección
++ **WRK_ZONE** código tipología de obras
++ **WRK_ZONENAME** tipología de obras
++ **RAIL_ROAD** código ubicación vehículo a la vía
++ **RAIL_ROADNAME** ubicación vehículo a la vía
++ **LGT_COND** código condición lumínica
++ **LGT_CONDNAME** condición lumínica
+
+**DIMENSIÓN METEOROLOGIA**
+
++ **WEATHER** código tiempo
++ **WEATHERNAME** tiempo
+
+**OTROS**
+
++ **SCH_BUSS** código si vehículo escolar implicado
++ **SCH_BUSNAME** vehículo escolar implicado
++ **RAIL** código si dentro o cerca paso ferroviario
++ **RAILNAME** si dentro o cerca paso ferroviario
+
+**DIMENSIÓN SERVICIO EMERGENCIAS**
+
++ **NOT_HOUR** hora notificación a emergencias int
++ **NOT_HOURNAME** hora notificación a emergencias franja
++ **NOT_MIN** minuto notificación a emergencias int
++ **NOT_MINNAME** minuto notificación a emergencias chr
++ **ARR_HOUR** hora llegada emergencias int
++ **ARR_HOURNAME** hora llegada emergencias franja
++ **ARR_MIN** minuto llegada emergencias int
++ **ARR_MINNAME** minuto llegada emergencias franja
++ **HOSP_HR** hora llegada hospital int
++ **HOSP_HRNAME** hora llegada hospital franja
++ **HOSP_MN** minuto llegada hospital int
++ **HOSP_MNNAME** minuto llegada hospital franja
+
+**DIMENSIÓN FACTORES RELACIONADOS ACCIDENTE**
+
++ **CF1** código factores relacionados con el accidente 1
++ **CF1NAME** factores relacionados con el accidente 1
++ **CF2** código factores relacionados con el accidente 2
++ **CF2NAME** factores relacionados con el accidente 2
++ **CF3** código factores relacionados con el accidente 3
+
+
+## Preprocesamiento y gestión de características
+
+### Limpieza
+
+El siguiente paso será la limpieza de datos, mirando si hay valores vacíos o nulos.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+print('NA')
+colSums(is.na(accidentData))
+print('Blancos')
+colSums(accidentData=="")
+```
+
+Vemos que no hay valores nulos en los datos. También verificamos si existen campos llenos de espacios en blanco. En este caso sí encontramos el campo TWAY_ID2 con 26997 valores en blanco. Valoramos no hacer ninguna acción de eliminar registros puesto que este campo no lo utilizaremos.
+
+
+Vamos a crear histogramas y describir los valores para ver los datos en general de estos atributos para hacer una primera aproximación a los datos:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+if(!require('Rmisc')) install.packages('Rmisc'); library('Rmisc')
+if(!require('dplyr')) install.packages('dplyr'); library('dplyr')
+if(!require('xfun')) install.packages('xfun'); library('xfun')
+
+summary(accidentData[c("FATALS","DRUNK_DR")])
+
+histList<- list()
+
+n = c("FATALS","DRUNK_DR")
+accidentDataAux= accidentData %>% select(all_of(n))
+for(y in 1:ncol(accidentDataAux)){
+col <- names(accidentDataAux)[y]
+ggp <- ggplot(accidentDataAux, aes_string(x = col)) +
+geom_histogram(bins = 30, fill = "cornflowerblue", color = "black",ggtittle = "Contador de ocurrencias por variable")
+histList[[y]] <- ggp # añadimos cada plot a la lista vacía
+}
+multiplot(plotlist = histList, coles = 1)
+
+```
+
+
+Observaciones:
+
+Número de muertes: Todos los accidentes recogidos en estos datos reportan una muerte como mínimo. Siendo el accidente más grave con ocho víctimas y vemos que la distribución se acumula de forma muy evidente en una muerte por accidente.
+
+Conductores bebidos involucrados en el accidente: Analizaremos con más detalle este dato más adelante para derivar un nuevo dato: Accidentes donde el alcohol está presente o no. De entrada, la media es de 0.26% de accidentes donde interviene un conductor bebido. La franja de conductores bebidos por accidente va de un conductor como mínimo a cuatro como máximo.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+summary(accidentData[c("VE_TOTAL","VE_FORMS","PVH_INVL")])
+#Crearemos una lista para mostrar los atributos que interesan.
+histList<- list()
+n = c("VE_TOTAL","VE_FORMS","PVH_INVL")
+accidentDataAux= accidentData %>% select(all_of(n))
+for(y in 1:ncol(accidentDataAux)){
+col <- names(accidentDataAux)[y]
+ggp <- ggplot(accidentDataAux, aes_string(x = col)) +
+geom_histogram(bins = 30, fill = "cornflowerblue", color = "black")
+histList[[y]] <- ggp # añadimos cada plot a la lista vacía
+}
+multiplot(plotlist = histList, coles = 1)
+
+```
+
+Observaciones en cuanto a los vehículos implicados.
+
+Número de vehículos implicados (VE_TOTAL) en total está en la franja de 1 hasta 59 siendo este el valor máximo y una media de 1.5.
+Número de vehículos en movimiento implicados (VE_FORMS), el valor más habitual es 1 con un valor máximo también de 59. Prevemos que hay un valor extremo que habrá que tratar para poder sacar más información de esta variable.
+Número de vehículos estacionados implicados (PVH_INVL): Por lo que respecta a esta variable lo habitual es que no haya vehículos estacionados en los incidentes recogidos en estos datos. Con todo aparecen casos aislados donde incluso había 10 coches estacionados.
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+summary(accidentData[c("PEDS","PERSONS","PERMVIT","PERNOTMVIT")])
+#Crearemos una lista para mostrar los atributos que interesan.
+histList<- list()
+n = c("PEDS","PERSONS","PERMVIT","PERNOTMVIT")
+accidentDataAux= accidentData %>% select(all_of(n))
+for(y in 1:ncol(accidentDataAux)){
+col <- names(accidentDataAux)[y]
+ggp <- ggplot(accidentDataAux, aes_string(x = col)) +
+geom_histogram(bins = 30, fill = "cornflowerblue", color = "black")
+histList[[y]] <- ggp # añadimos cada plot a la lista vacía
+}
+multiplot(plotlist = histList, coles = 1)
+```
+
+Observaciones en cuanto a las personas implicadas en un accidente.
+
+El número de peatones implicados (PEDS) es muy bajo siendo coherente con el tipo de vía que se estudia y dónde no es habitual que haya gente andando. Con todo el valor como media de 0.22 y máximo de 8 obliga a investigar más este dato.
+(PERSONS) El número de ocupantes de vehículo implicados se sitúa como media en 2.1 (PERMVIT) El número conductores y ocupantes de vehículos en circulación implicados tiene un valor de media de 2.1. Estas dos variables recogen la misma información, pero la cuantifican de diferente manera. El accidente con el mayor número de ocupantes es de 61 personas. 
+Por lo que respecta al número peatones, ciclistas, personas en vehículos aparcados y otros (PERNOTMVIT) vemos que aumenta un poco la media respecto a peatón puesto que entendemos que se incluyen más casos.
+
+Vamos a profundizar un poco en el tema de la relación del alcohol en los conductores y el número de accidentes.
+
+```{r}
+accidentData$alcohol <- ifelse(accidentData$DRUNK_DR %in% c(0), 0, 1)
+counts <- table(accidentData$alcohol)
+barplot(prop.table(counts),col=c("green","red"), main="Accidentes con conductor bebido", legend.texto=c("No Alcohol","Sí Alcohol"),xlab ="Presencia Alcohol", ylab = "Porcentaje",ylim=c(0,0.8) )
+```
+
+Vemos que porcentualmente, en la gran mayoría de accidentes, alrededor del 75% no hay presencia de alcohol en el conductor. Los conductores que dan positivo están alrededor de un 22%. Hemos buscado contrastar el dato con otros países y estarían en un valor central donde los valores extremos máximo por país superan el 50% y los mínimos están sobre el 10%
+
+Observamos ahora como se distribuyen las muertes por accidente.
+```{r}
+df1 <- accidentData %>%
+group_by(accidentData$FATALS) %>%
+dplyr::summarise(counts = n())
+df1
+
+counts <- table(accidentData$FATALS)
+barplot(prop.table(counts),col=("red"),ylim=c(0,0.99),main="Distribución de la mortalidad a los accidentes",xlab ="Número de muertos", ylab = "Porcentaje")
+```
+
+Vemos que la mayoría de los accidentes tienen como mínimo un muerto. Vamos ahora a relacionar mortalidad y alcohol.
+```{r}
+counts <- table(accidentData$alcohol, accidentData$FATALS)
+colors <- c("green", "red")
+barplot(prop.table(counts), beside = TRUE, col = colors,
+ylim = c(0, 1), axes = TRUE,
+xlab = "Número de muertos",
+ylab = "Porcentaje",
+main = "Accidentes por muertes y conductores positivos en alcohol",
+legend = c("No Alcohol", "Alcohol"),
+fill = colors)
+
+
+```
+
+Probaremos ahora si hay relación entre el estado donde ha pasado el accidente y el número de conductores bebidos. Filtramos los cinco estados donde hay más accidentes.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+accidentDataST5=subset(accidentData, accidentData$STATENAME == "California" | accidentData$STATENAME == "Texas" | accidentData$STATENAME == "Florida" | accidentData$STATENAME == "Georgia" | accidentData$STATENAME == "North Carolina")
+
+files=dim(accidentDataST5)[1]
+ggplot(data=accidentDataST5[1:files,],aes(x=DRUNK_DR,fill=STATENAME))+geom_bar()+ggtitle("Relación entre conductor bebido y Estado")+labs(x="Número de conductores bebidos implicados")
+```
+
+Como reflexión este gráfico tiene que pasar por el filtro de percentuar el número de accidentes por estado y la población del estado para no sacar conclusiones apresuradas.
+
+Veamos ahora como en un mismo gráfico de frecuencias podemos trabajar con 3 variables: FATALS, STATENAME y WEATHERNAME.
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data = accidentDataST5[1:files,],aes(x=FATALS,fill=STATENAME))+geom_bar(position="fill")+facet_wrap(~WEATHERNAME)+ggtitle("Número de muertes en accidente por Estado y clima")+labs(x="Número de muertes")
+```
+
+Esta gráfica está bien como mecánica de construcción, pero los resultados los ponemos en entredicho. Está bien como paso inicial, pero hay que profundizar mucho más.
+
+Vamos a buscar las correlaciones en función de las muertes y unas variables elegidas que creemos que pueden ayudar a explicar el aumento de muertes por accidente:
+
+**DRUNK_DR** conductores bebidos
+**VE_TOTAL** número de vehículos implicados en total
+**VE_FORMS** número de vehículos en movimiento implicados
+**PVH_INVL** número de vehículos estacionados implicados
+**PEDS** número de peatón implicados
+**PERSONS** número de ocupante de vehículo implicados
+**PERMVIT** número conductores y ocupantes implicados
+**PERNOTMVIT** número peatones, ciclistas... Cualquier cosa menos vehículo motorizado
+
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Utilizamos esta librería para usar la funcio multiplot()
+if(!require('Rmisc')) install.packages('Rmisc'); library('Rmisc')
+
+n = c("DRUNK_DR","VE_TOTAL","VE_FORMS","PVH_INVL","PEDS","PERSONS","PERMVIT","PERNOTMVIT") 
+accidentDataAux= accidentData %>% select(all_of(n))
+histList2<- vector('list', ncol(accidentDataAux))
+for(i in seq_along(accidentDataAux)){
+  message(i)
+histList2[[i]]<-local({
+  i<-i
+  col <-log(accidentDataAux[[i]])
+  ggp<- ggplot(data = accidentDataAux, aes(x = accidentData$FATALS, y=col)) + 
+    geom_point(color = "gray30") + geom_smooth(method = lm,color = "firebrick") + 
+    theme_bw() + xlab("Muertes") + ylab(names(accidentDataAux)[i])
+  })
+
+}
+multiplot(plotlist = histList2, cols = 3)
+```
+
+Podemos ver que:
+
++ De forma general cualquier aumento en las variables elegidas implica un aumento de las muertes en el accidente.
+
++ El factor que hace aumentar más el número de víctimas son las variables relacionadas con los peatones y pasajeros de los coches involucrados en el accidente.
+
+Utilizamos las columnas que nos interesa para hacer la matriz y la visualizaremos utilizando la función corrplot.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
+if(!require("corrplot")) install.packages("corrplot"); library("corrplot")
+n = c("FATALS","DRUNK_DR","VE_TOTAL","VE_FORMS","PVH_INVL","PEDS","PERSONS","PERMVIT","PERNOTMVIT")
+factores= accidentData %>% select(all_of(n))
+res<-cor(factores)
+corrplot(res,method="color",tl.col="black", tl.srt=30, order = "AOE",
+number.cex=0.75,sig.level = 0.01, addCoef.col = "black")
+```
+
+No vemos que haya una correlación negativa significativa entre dos variables y sí una muy buena correlación ya previsible entre los peatones implicados y personas involucradas en el accidente que no van en coche (PEDS y PERNOTMVIT) Lo mismo podemos observar en cuanto al número de conductores y ocupantes implicados (PERMVIT) y el número de vehículos implicados en movimiento (VE_FORMS) o el total de vehículos (VE_TOTAL).
+
+Vamos a probar si hay una correlación entre personas implicadas en el accidente y el número de muertes.
+
+```{R}
+if (!require('tidyverse')) install.packages('tidyverse'); library('tidyverse')
+cor.test(x = accidentData$PERSONS, y = accidentData$FATALS, method = "kendall")
+ggplot(data = accidentData, aes(x = PERSONS, y = log(FATALS))) + geom_point(color = "gray30") + geom_smooth(color = "firebrick") + theme_bw() +ggtitle("Correlación entre personas implicadas en el accidente y número de muertes")
+```
+
+De la observación de este gráfico podemos concluir que efectivamente el número de muertes aumenta en función de las personas implicadas en un accidente pero que la correlación no es tan elevada ni continúa como se podía prever.
+
+## Construcción de conjunto de datos final
+
+Si dos variables están altamente correlacionadas obviamente darán casi exactamente la misma información en un modelo de regresión, por ejemplo. Pero, al incluir las dos variables, en realidad estamos debilitando el modelo. No estamos añadiendo información incremental. En lugar de esto, estamos haciendo un modelo ruidoso. No es una buena idea.
+
+Cómo hemos visto antes tenemos una correlación muy grande entre PEDS y PERNOTMVIT, por lo tanto, podríamos eliminar la columna de peatones (PEDS) y dejar el total de peatones y otros reflejado a PERNOTMVIT.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# accidentData$PEDS<- NULL
+str(accidentData)
+
+```
+
+### Codificación
+
+Seguidamente vayamos a asignar un 1 por accidentes que se producen de madrugada (01h a 06h en invierno) y un 0 para el resto de franja horaria, es decir, vamos a categorizar la variable HOUR y así tendremos una variable numérica que nos permitirá trabajar mejor en el futuro. La denominaremos madrugada. Después la utilizaremos para ver cómo se distribuyen los accidentes en las dos franjas horarias. Debemos tener en cuenta que la hora incluye el código 99 qué quiere decir que la hora no está informada. Miraremos de filtrar los registros con este valor para excluirlos.
+```{r}
+
+accidentDataAux=subset(accidentData, accidentData$HOUR <= 24)
+
+accidentData$madrugada <- NA
+accidentData$madrugada[accidentDataAux$HOUR >=1 & accidentDataAux$HOUR <= 6] <- 1
+accidentData$madrugada[accidentDataAux$HOUR ==0 | accidentDataAux$HOUR >6 ] <- 0
+
+counts <- table(accidentData$madrugada)
+barplot(prop.table(counts),col=c("green","red"),legend.texto=c("Resto del día","Madrugada"),ylim=c(0,1), main="Distribución de accidentes la madrugada y resto del día",xlab="0 Resto del día 1 Madrugada",ylab="Porcentaje" )
+
+```
+
+### Discretización
+
+Ahora añadiremos un campo nuevo a los datos. Este campo contendrá el valor de la hora del accidente discretizada con un método simple de intervalos de igual amplitud.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+summary(accidentDataAux[,"HOUR"])
+```
+
+Discretizamos con intervalos. Los criterios de corte están cogidos de la Web del Parlamento de Cataluña.
+
+```{r}
+accidentDataAux["segmento_horario"] <- cut(accidentDataAux$HOUR, breaks = c(0,4,11,14,18,22), labels = c("Madrugada", "Mañana", "Mediodía", "Anochecer","Noche"))
+```
+
+Observamos los datos discretizados y construimos un gráfico para analizar cómo se agrupan los accidentes.
+
+```{r}
+head(accidentDataAux$segmento_horario)
+```
+```{r}
+plot(accidentDataAux$segmento_horario,main="Número de accidentes por segmento horario",xlab="Segmento horario", ylab="Cantidad",col = "ivory")
+```
+
+Ahora vamos a discretizar la variable que contiene el número de vehículos implicados en un accidente (VE_TOTALS) puesto que era una de las variables en que las distancias entre sus valores eran muy grandes:
+
+```{r}
+# Utilizaremos la función discretize de arules: This function implements several basic unsupervised methods to convert a continuous variable into a categorical variable (factor) using different binning strategies. 
+# https://cran.r-project.org/web/packages/arules/index.html
+if (!require('arules')) install.packages('arules'); library('arules')
+set.seed(2)
+table(discretize(accidentData$VE_TOTAL, "cluster" ))
+hist(accidentData$VE_TOTAL, main="Número de accidentes por vehículos implicados con kmeans",xlab="Vehículos implicados", ylab="Cantidad",col = "ivory")
+abline(v=discretize(accidentData$VE_TOTAL, method="cluster", onlycuts=TRUE),col="red")
+```
+
+Podemos observar que sin pasar ningún argumento y permitiendo que el algoritmo elija el conjunto de particiones se muestran tres clústeres que agrupan los vehículos implicados en las franjas mencionadas. Podemos asignar el propio clúster como una variable más al dataset para trabajar después.
+
+```{r}
+accidentData$VE_TOTAL_KM<- (discretize(accidentData$VE_TOTAL, "cluster" ))
+head(accidentData$VE_TOTAL_KM)
+```
+
+### Normalización
+
+
+Ahora normalizaremos el número de muertes por el máximo añadiendo un nuevo campo a los datos que contendrá el valor.
+
+```{r}
+accidentData$FATALS_NM<- (accidentData$FATALS/max(accidentData[,"FATALS"]))
+head(accidentData$FATALS_NM)
+
+```
+Supongamos que queremos normalizar por la diferencia para ubicar entre 0 y 1 la variable del número de muertes del accidente dado que el algoritmo de minería que utilizaremos así lo requiere. Observamos la distribución de la variable original y las generadas.
+```{r}
+
+accidentData$FATALS_ND = (accidentData$FATALS-min(accidentData$FATALS))/(max(accidentData$FATALS)-min(accidentData$FATALS))
+
+max(accidentData$FATALS)
+min(accidentData$FATALS)
+hist(accidentData$FATALS,xlab="Muertos", col="ivory",ylab="Cantidad", main="Número de muertes en accidente")
+hist(accidentData$FATALS_NM,xlab="Muertos",ylab="Cantidad",col="ivory", main="Muertos normalizado por el máximo")
+hist(accidentData$FATALS_ND,xlab="Muertos",ylab="Cantidad", col="ivory", main="Muertos normalizado por la diferencia")
+```
+
+A continuación, vamos a normalizar las otras columnas para asegurarnos que cada variable contribuye por igual en nuestro análisis.
+```{r}
+# Definimos la función de normalización
+nor <-function(x) { (x -min(x))/(max(x)-min(x))}
+# Guardamos un nuevo dataset normalizado
+
+accidentData$type<- NULL
+n = c("FATALS","DRUNK_DR","VE_TOTAL","VE_FORMS","PVH_INVL","PEDS","PERSONS","PERMVIT","PERNOTMVIT")
+accidentData<- accidentData %>% select(all_of(n))
+accidentData_nor <- as.data.frame(lapply(accidentData, nor))
+
+head(accidentData_nor)
+```
+
+## Proceso de PCA
+
+Tanto el análisis de componentes principales, principal componente analysis (PCA) en inglés, como la descomposición de valores singulares, singular value decomposition (SVD) en inglés, son técnicas que nos permitan trabajar con nuevas características llamadas componentes, que ciertamente son independientes entre sí.
+En realidad, estas dos técnicas nos permiten representar el juego de datos en un nuevo sistema de coordenadas que denominamos componentes principales.
+Este sistema está mejor adaptado a la distribución del juego de datos, de forma que recoge mejor su variabilidad.
+
+Aplicamos el análisis de componentes principales al dataset. Empezamos ejecutando la función **prcomp()**.
+```{r}
+pca.acc <- prcomp(accidentData_nor)
+summary(pca.acc)
+```
+
+Como se puede observar la función summary, nos devuelve la proporción de varianza aplicada al conjunto total de cada atributo. Gracias a esto, el atributo 1 explica el 0.452 de variabilidad del total de datos; en cambio, el atributo 7 explica solo el 0.000381.
+
+A continuación, se muestra un histograma para ver el peso de cada atributo sobre el conjunto total de datos:
+```{r}
+if (!require('factoextra')) install.packages('factoextra'); library('factoextra')
+#Los valores propios corresponden a la cantidad de variación explicada por cada componente principal (PC).
+ev= get_eig(pca.acc)
+ev
+fviz_eig(pca.acc)
+```
+
+En este ejercicio se decidió utilizar el método de Káiser para decidir cuales de las variables obtenidas serán escogidas. Este criterio mantendrá todas aquellas variables cuya varianza sea superior a 1.
+```{r}
+# Calculamos la varianza de los componentes principales a partir de la desviación estándar
+
+var_acc <- pca.acc$sdev^2
+
+var_acc
+```
+
+Con los resultados obtenidos es muy complicado decidir cuáles son los componentes principales componentes a escoger. *Este hecho podría estar causado por no haber escalado los datos previamente.* Por lo tanto, el siguiente paso es escalar los datos y volver a calcular la varianza para ver qué datos selecciona.
+```{r}
+# Escalamos los datos
+acc_scale <- scale(accidentData_nor)
+# Calculamos las componentes principales
+pca.acc_scale <- prcomp(acc_scale)
+# Mostramos la varianza de dichas variables:
+var_acc_scale <- pca.acc_scale$sdev^2
+head(var_acc_scale)
+```
+
+Después de analizar la varianza y aplicando el criterio de Káiser nos quedaremos con los componentes principales 1,2,3 y 4 que son los superiores a 1. Este criterio tiene el problema de sobreestimar el número de factores, pero a pesar de ello es el que aplicaremos para analizar los resultados.
+
+Mostramos el histograma de porcentaje de varianza explicado con los datos escalados:
+```{r}
+fviz_eig(pca.acc_scale)
+ev = get_eig(pca.acc_scale)
+ev
+```
+
+Los valores propios se pueden utilizar para determinar el número de componentes principales a retener después de la PCA (Kaiser 1961):
+
++ Un valor propio > 1 indica que los PCs representan más varianza de la que representa una de las variables originales de los datos estandarizados. Esto se utiliza habitualmente como punto de corte para el cual se conservan los PCs. Esto solo es cierto cuando los datos están estandarizados.
+
++ También podemos limitar el número de componentes a este número que representa una determinada fracción de la varianza total. Por ejemplo, si estamos satisfecho con el 80% de la varianza total explicada, usamos el número de componentes para conseguirlo que son los 4 componentes principales vistos antes. 
+
+Continuamos con el análisis de los componentes principales. Después de aplicar el método Káiser se han seleccionado los 4 componentes principales.
+
+```{r}
+var <- get_pca_var(pca.acc_scale)
+var
+```
+
+Los componentes de get_pca_var() se pueden utilizar en el diagrama de variables de la siguiente manera:
+
++ **var$coord**: coordenadas de variables para crear un diagrama de dispersión.
++ **var$cos2**: representa la calidad de representación de las variables al mapa de factores. Se calcula como las coordenadas al cuadrado: var.cos2 = var.coord * var.coord.
++ **var$contrib**: contiene las contribuciones (en porcentaje) de las variables a los componentes principales. La contribución de una variable (var) a un determinado componente principal es (en porcentaje): (var.cos2 * 100) / (cos2 total del componente).
+
+```{r}
+#Utilizamos los 4 componentes principales encontrados antes
+head(var$coord[,1:4],11)
+```
+
+### Calidad de representación
+La calidad de representación de las variables en el mapa de factores se denomina cos2 (coseno cuadrado, coordenadas cuadradas). Podemos acceder al cos2 de la siguiente manera:
+
+```{r}
+head(var$cos2[,1:4],11)
+```
+```{r}
+corrplot(var$cos2[,1:4], is.corre=FALSE)
+```
+
+También es posible crear un diagrama de barras de variables cos2 mediante la función fviz_cos2():
+```{r}
+fviz_cos2(pca.acc_scale, choice = "var", axes = 1:2)
+```
+
++ Un cos2 elevado indica una buena representación de la variable en el componente principal. En este caso, la variable se coloca cerca de la circunferencia del círculo de correlación.
+
++ Un cos2 bajo indica que la variable no está perfectamente representada por los PC. En este caso, la variable está cerca del centro del círculo.
+
+Para una variable dada, la suma del cos2 de todos los componentes principales es igual a uno.
+
+Si una variable está perfectamente representada por solo dos componentes principales (Dim.1 y Dim.2), la suma del cos2 en estos dos PCs es igual a uno. En este caso las variables se colocarán en el círculo de correlaciones.
+
+Para algunas de las variables, pueden ser necesarios más de 2 componentes para representar perfectamente los datos. En este caso las variables se sitúan dentro del círculo de correlaciones.
+
+En resumen:
+
++ Los valores de cos2 se utilizan para estimar la calidad de la representación
++ Cuanto más próxima esté una variable al círculo de correlaciones, mejor será su representación en el mapa de factores (y más importante es interpretar estos componentes)
++ Las variables que están próximas en el centro de la trama son menos importantes para los primeros componentes.
+```{r}
+fviz_pca_var(pca.acc_scale,
+col.var = "cos2",
+gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+repel = TRUE
+)
+```
+
+### Contribución
+
+Las contribuciones de las variables en la contabilización de la variabilidad de un determinado componente principal se expresan en porcentaje.
+
+Las variables que están correlacionadas con PC1 (es decir, Dim.1) y PC2 (es decir, Dim.2) son las más importantes para explicar la variabilidad en el conjunto de datos.
+
+Las variables que no están correlacionadas con ningún PC o con las últimas dimensiones son variables con una contribución baja y se pueden eliminar para simplificar el análisis global.
+
+La contribución de las variables se puede extraer de la siguiente manera:
+```{r}
+head(var$contrib[,1:4],11)
+```
+
+Cuando más grande sea el valor de la contribución, más contribución habrá al componente.
+
+```{r}
+corrplot(var$contrib[,1:4], is.cor=FALSE)
+```
+
+Las variables más importantes (que más contribuyen) se pueden resaltar a la gráfica de correlación de la siguiente manera:
+```{r}
+fviz_pca_var(pca.acc_scale, col.var = "contrib",
+gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
+)
+```
+
+Las variables correlacionadas positivas apuntan al mismo lado de la trama. Las variables correlacionadas negativas apuntan a lados opuestos del gráfico. Por ejemplo, vemos que las personas involucradas en un accidente (PVH_INVL) y conductor bebido (DRUNK_DR) apuntan direcciones opuestas por tanto no están nada correlacionas, además lo hemos visto antes puesto que tienen un coeficiente de correlación de -0.01.
+
+Se observa que las variables que más aportan a las componentes principales son **PEDS y PERNOTMVIT por un lado y VE_TOTAL, VE_FORMS, PERSONS y PERMVIT por otro**. Esto es debido al hecho que están correlacionadas. En concreto por el diagrama de correlación de antes de que PEDS está muy bien correlacionada con PERNOTMVIT. De otra banda VE_TOTAL, VE_FORMS, PERSONS y PERMVIT están también bastante correlacionadas. La correlación de FATALS con este grupo de variables no es elevada, pero apunta en la misma dirección.
+
+Podrían ahora rehacer los componentes excluyendo las variables que no aportan información. Una vez rehechas estas nuevas variables sustituyen a las originales que las forman y se podrían utilizar por ejemplo como un indicador de gravedad de accidente puesto que incluye vehículo en movimiento, parado, peatones, conductores y otros implicados en una sola variable.
+
+## Interpretación de los resultados
+
+Los datos estudiados contemplan accidentes de tráfico con víctimas en las redes de autopistas en los EUUU a largo del 2020. Todos los registros tienen un identificador único de accidente y una serie de hechos principales como número de muertos, número de conductores bebidos, vehículos y personas implicadas. Tenemos que añadir otras variables que los caracterizan agrupadas por ubicación geográfica, temporal, condiciones específicas del accidente, meteorológicas, la intervención del servicio de emergencias y otros factores.
+
+Revisados los datos parecen bien informados. Los datos están bastante limpios y bien documentados. No plantean graves problemas de campos con valores nulos o vacíos y tienen bastante potencial para generar nuevos indicadores a partir de los datos.
+
+Podemos afirmar que a lo largo del 2020 en las autopistas de EE. UU. sucedieron 35766 accidentes en los que perdieron la vida 38824 personas. Pretendiamos extraer relaciones entre la presencia de alcohol en los conductores y el número de accidentes, pero las conclusiones no fueron claras. Las relaciones más obvias comprobadas son el incremento de muertes en función del incremento del número de vehículos, pasajeros y peatones implicados.
+
+Habría que profundizar mucho más. Sí que podemos perfilar cómo son los accidentes típicos en cuanto al número de vehículos y personas, conductores o peatones implicados.
+
+El más habitual es un muerto por accidente incrementándose este valor en función de las variables relacionadas. Los conductores bebidos aparecen en uno de cada cuatro accidentes mortales aproximadamente. Los vehículos implicados en los accidentes son típicamente uno pudiéndose incrementar a dos en los casos más típicos. El número de peatones implicados es relativamente bajo dado el tipo de vía que estamos estudiando.
+
+En cuanto al consumo de alcohol, con el grado de profundidad estudiado, no se observa un estado donde las proporcionalidades del número de conductor con presencia de alcohol sean superiores a otros estados.
+
+Estudiando el número de muertes en accidente en relación con el estado donde ha sucedido y la condición climática, vemos necesario profundizar con técnicas por ejemplo de agregación para ver cómo se agrupan y poder obtener un perfil.
+
+Se ha estudiado la franja horaria de la madrugada para ver si acumula un mayor número de accidentes, no siendo así. Parece que el número de accidentes mantiene también proporcionalidad respecto las franjas horarias. Se ha estudiado el número de accidentes por segmento horario con una discretización fijada en intervalo arbitrarios. La mayor presencia de accidentes en horario por la mañana y anochecer (ir y volver al trabajo) hace pensar en que queda pendiente estudiar dado el tipo de vía la distribución horaria de los accidentes lunes a viernes respecto a los fines de semana y festivos para ver si hay horas donde se acumulan más accidentes mortales.
+
+Finalmente, con la técnica de los componentes principales hemos generado una nueva variable que combina otras variables con una correlación inicial que se podría considerar como índice de gravedad del accidente.
+
+****
+# Ejercicio 1
+****
+
+Propón un proyecto completo de minería de datos. La organización de la respuesta tiene que coincidir en las fases típicas del ciclo de vida de un proyecto de minería de datos. **No hay que realizar las tareas de la fase**. 
+
+Se espera por lo tanto que se responda de forma argumentada a las siguientes preguntas (Metodología *CRISP-DM*):
+
+1.	**Comprensión del negocio** - ¿Qué necesita el negocio? 
+2.	**Comprensión de los datos** - ¿Qué datos tenemos/necesitamos? ¿Están limpios? 
+3.	**Preparación de los datos** - ¿Cómo organizamos los datos para el modelado? 
+4.	**Modelado** - ¿Qué técnicas de modelado debemos aplicar?
+5.	**Evaluación** - ¿Qué modelo cumple mejor con los objetivos del negocio?
+6.	**Implementación** - ¿Cómo acceden los interesados a los resultados?
+
+Para cada fase indica cuál es el objetivo de la fase y el producto que se obtendrá. Utiliza ejemplos de qué y cómo podrían ser las tareas. Si hay alguna característica que hace diferente el ciclo de vida de un proyecto de minería respecto a otros proyectos indícalo.
+
+Extensión mínima: 400 palabras
+
+
+> Escribe aquí la respuesta a la pregunta
+
+****
+# Ejercicio 2
+****
+A partir del juego de datos utilizado en el ejemplo de la PEC, realiza las tareas previas a la generación de un modelo de minería de datos explicadas en los módulos "El proceso de minería de datos" y "Preprocesado de los datos y gestión de características". 
+
+Puedes utilizar de referencia el ejemplo de la PEC, pero procura cambiar el enfoque y analizar los datos en función de las diferentes dimensiones que presentan los datos. Así, no se puede utilizar la combinación de variables utilizada en el ejemplo: "FATALS","DRUNK_DR","VE_TOTAL","VE_FORMS","PVH_INVL","PEDS","PERSONS","PERMVIT","PERNOTMVIT". Se debe analizar cualquier otra combinación que puede incluir (o no) algunas de estas variables con otras nuevas. 
+
+Opcionalmente y valorable se pueden añadir al estudio datos de otros años para realizar comparaciones temporales (https://www.nhtsa.gov/file-downloads?p=nhtsa/downloads/FARS/) o añadir otros hechos a estudiar relacionados, por ejemplo, el consumo de drogas en los accidentes (https://static.nhtsa.gov/nhtsa/downloads/FARS/2020/National/FARS2020NationalCSV.zip)
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Cargamos el juego de datos
+
+# Redacta aquí el código R para el estudio del juego de datos
+```
+> Escribe aquí la respuesta a la pregunta
+
+

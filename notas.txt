@@ -1,0 +1,4 @@
+#Instalar latex
+
+if (!require('tinytex')) install.packages('tinytex')
+tinytex::install_tinytex()
