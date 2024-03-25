@@ -1,0 +1,13 @@
+En un contexto técnico y específico de informática, una función hash es un algoritmo que toma una entrada (o 'mensaje') y devuelve una cadena de caracteres de longitud fija, que normalmente parece aleatoria. El resultado de este proceso se conoce como valor hash o simplemente hash. Si aplicas una función hash a dos entradas diferentes, como las palabras "manzana" y "pera", obtendrás dos valores hash diferentes, asumiendo que la función hash es ideal y no hay colisiones.
+
+La agrupación de hashes no suele realizarse sobre la base de los valores hash en sí mismos, ya que estos están diseñados para ser únicos para cada entrada distinta, lo que dificulta cualquier tipo de agrupación natural. Sin embargo, si quieres agrupar valores hash, necesitarías aplicar alguna lógica adicional. Aquí hay un par de maneras de cómo podrías hacerlo:
+
+1. **Agrupación según la entrada original**: Si conoces las entradas que condujeron a cada hash y estas tienen categorías naturales (como tipos de frutas en tu ejemplo), puedes agrupar las entradas antes de aplicar la función hash y luego mantener esta agrupación después del hashing. Por ejemplo, "manzana" y "pera" podrían estar en la categoría "frutas", y aunque sus valores hash son únicos, sabes que ambos hashes provienen de frutas.
+
+2. **Bucket Hashing**: Otra forma es utilizar una técnica de "bucket hashing" donde hashes similares se almacenan juntos basándose en parte de su valor hash. Por ejemplo, puedes decidir agrupar hashes por sus primeros dos caracteres. Entonces, si el hash de "manzana" y "pera" comienza con "1a", ambos podrían estar en el mismo "bucket", a pesar de ser únicos en su totalidad.
+
+3. **Hashing Consistente**: Es una técnica que distribuye claves (en este caso, valores hash) a través de "buckets" de manera que cuando un "bucket" se agrega o elimina, solo se afectan las claves mínimas necesarias. Esto es útil en sistemas distribuidos, como bases de datos y cachés.
+
+4. **Hashing de Características ([[Feature hashing]])**: Como mencionamos antes, se usa para convertir un gran número de posibles valores de características en un tamaño fijo de valores de salida. En el caso de "manzana" y "pera", podrías usar feature hashing para asignarlas a uno de los "buckets" fijos basados en sus valores hash, a pesar de que cada fruta tendría su propio hash único.
+
+Es importante señalar que cuando se utilizan funciones hash en criptografía, las colisiones (dos entradas distintas que producen el mismo hash) deben ser extremadamente improbables debido a las implicaciones de seguridad, pero en otros contextos, como en la indexación de base de datos, alguna forma de colisión puede ser tolerable y manejable.

@@ -1,0 +1,7 @@
+El escalado decimal es como ajustar el volumen de los números para que no grites cuando solo necesitas hablar. Imagina que tienes números muy grandes, como salarios o cifras de ventas, que son tan altos que resulta complicado manejarlos o compararlos directamente. Lo que hace el escalado decimal es "bajar el volumen" de estos números dividiéndolos por potencias de 10 hasta que se conviertan en números más manejables, menores que 1.
+
+Para decidir por cuánto debes dividir (qué potencia de 10 usar), miras cuál es el número más grande que tienes y luego eliges una potencia de 10 que lo haga más pequeño que 1 pero lo más cercano posible a 1. Esto asegura que todos tus números se manejen en una escala similar y sean más fáciles de comparar.
+
+Por ejemplo, si el salario más alto que estás mirando es 45,000, puedes dividir todos los salarios por 100,000 (10 elevado a la 5) para transformar 45,000 en 0.450. Haces esto con todos los salarios, y ahora, en lugar de lidiar con miles, estás trabajando con números entre 0 y 1, que son mucho más fáciles de comparar y entender.
+
+Este método es especialmente útil cuando tienes números que son tan grandes que se vuelven difíciles de comparar visualmente o que podrían causar problemas en algunas operaciones matemáticas o computacionales debido a su tamaño. Al "bajar el volumen", es decir, al escalar los números, haces que todos jueguen en el mismo campo y se conviertan en más comparables, facilitando la visualización y el análisis.

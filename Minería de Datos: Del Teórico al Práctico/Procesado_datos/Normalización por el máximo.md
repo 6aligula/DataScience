@@ -1,0 +1,7 @@
+La normalización por el máximo es como hacer que todos los valores de algo se comparen con el valor más grande del grupo, para ver qué tan grandes o pequeños son en relación con él. Digamos que tienes un grupo de números y quieres entender mejor cómo se comparan entre sí sin que los números grandes dominen la conversación.
+
+Aquí está cómo funciona: encuentras el número más grande de tu grupo. Ese es tu punto de referencia, como el "jefe" de los números. Luego, divides todos los números del grupo por ese "jefe". Así, el número más grande se convierte en 1 (porque es él mismo dividido por él mismo) y todos los demás números se convierten en algo menor que 1, mostrando qué tan cerca o lejos están del jefe.
+
+Por ejemplo, si estás mirando las edades de algunas personas y la mayor edad es 64 años, divides todas las edades por 64. Así, 64/64 se convierte en 1 (la persona mayor es como el punto de referencia), y una edad de 34 años se convierte en 34/64, que es algo como 0.53, mostrando que esta persona tiene un poco más de la mitad de la edad del mayor.
+
+Al hacer esto, cambias todos tus números para que estén en una escala de 0 a 1, donde 1 es el número más grande originalmente. Esto hace mucho más fácil comparar diferentes cosas, como edades y salarios, porque ahora estás usando la misma escala para todas ellas. En el ejemplo que diste, después de normalizar, puedes ver más claramente cómo se comparan las edades y los salarios sin que las diferencias originales en magnitud (miles de euros versus años) distorsionen la comparación.

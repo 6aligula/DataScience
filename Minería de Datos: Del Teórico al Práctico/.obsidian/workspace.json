@@ -1,0 +1,192 @@
+{
+  "main": {
+    "id": "a7a824c3c2fde7ec",
+    "type": "split",
+    "children": [
+      {
+        "id": "49f70a30e5b82311",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e1a225cf5da0e68b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Procesado_datos/8Valores ausentes.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "3efb1dddc09fedda",
+    "type": "split",
+    "children": [
+      {
+        "id": "d79dad263ef3ef12",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a7f25f896371c185",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "3e2215d859a33550",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "d648d569eff9296e",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 414.5
+  },
+  "right": {
+    "id": "b3440be42cb37498",
+    "type": "split",
+    "children": [
+      {
+        "id": "62ad349409d970bd",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "aface681c488090e",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Procesado_datos/8Valores ausentes.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "55bc092365205ef7",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Procesado_datos/8Valores ausentes.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "34ac159a80b2a412",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "88a5d623a5fc7769",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Procesado_datos/8Valores ausentes.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "e1a225cf5da0e68b",
+  "lastOpenFiles": [
+    "Procesado_datos/Escalado decimal.md",
+    "Procesado_datos/6Eliminar outliers mediante técnicas de edición.md",
+    "Procesado_datos/7Reducir muestras mediante técnicas de condensación.md",
+    "Procesado_datos/8Valores ausentes.md",
+    "Pasted image 20240323140524.png",
+    "LLM.md",
+    "Pasted image 20240323135511.png",
+    "Pasted image 20240323134810.png",
+    "Pasted image 20240323134759.png",
+    "Procesado_datos/5Reducir atributos.md",
+    "Procesado_datos/4Reducción de la dimensionalidad.md",
+    "Procesado_datos/3Discretización.md",
+    "Procesado_datos/2Normalización.md",
+    "Procesado_datos/1Transformaciones de valores.md",
+    "Procesado_datos/Método de partición basado en el algoritmo k-means.md",
+    "Procesado_datos/Obtención de intervalos de discretización de igual frecuencia.md",
+    "Procesado_datos/Método de partición en intervalos de la misma amplitud.md",
+    "Procesado_datos/Normalización basada en la desviación estándar.md",
+    "Procesado_datos/Normalización por el máximo.md",
+    "Procesado_datos/Normalización por la diferencia.md",
+    "Gestión de caracteristicas/Untitled.md",
+    "Gestión de caracteristicas/Transformación logarítmica.md",
+    "Pasted image 20240321115850.png",
+    "Gestión de caracteristicas/Redondeo.md",
+    "Gestión de caracteristicas/Tipos de codificación.md",
+    "Screenshot 2024-03-21 at 11.49.28.png",
+    "Gestión de caracteristicas/Ingeniería sobre datos categoriales.md",
+    "Gestión de caracteristicas/Feature crossing.md",
+    "Pasted image 20240321113107.png",
+    "Gestión de caracteristicas/Tipos de uso del hash.md",
+    "Gestión de caracteristicas/Feature hashing.md",
+    "Gestión de caracteristicas/PCA y SVD.md",
+    "Pasted image 20240321100447.png",
+    "Pasted image 20240321100312.png",
+    "Pasted image 20240320134344.png",
+    "Gestión de caracteristicas",
+    "Gestión de caracteristicas/Gestion_de_caracteristicas.pdf",
+    "Preparación_de_los_datos/The Top Ten Algorithms in Data Mining [Wu & Kumar 2009-04-09].pdf",
+    "Preparación_de_los_datos",
+    "Proceso mineria datos.pdf"
+  ]
+}

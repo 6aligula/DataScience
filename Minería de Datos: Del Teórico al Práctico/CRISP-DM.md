@@ -1,0 +1,4 @@
+
+CRISP-DM es una metodología estándar para proyectos de ciencia de datos que incluye seis fases secuenciales: comprensión del negocio, comprensión de los datos, preparación de datos, modelado, evaluación e implementación. Desarrollado en 1999, sigue siendo el método más utilizado por su enfoque estructurado y flexible. Se recomienda combinar CRISP-DM con prácticas ágiles de gestión de proyectos para obtener mejores resultados, promoviendo una comprensión profunda de las necesidades del negocio y un despliegue efectivo de soluciones .
+
+link a la web [[https://www.datascience-pm.com/crisp-dm-2/]]

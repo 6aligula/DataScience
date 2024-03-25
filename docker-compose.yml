@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+  rstudio:
+    image: rocker/rstudio:latest
+    environment:
+      - USER=ruser
+      - PASSWORD=unPasswordSeguro
+    volumes:
+      - ./data:/home/ruser/data
+      - ./scripts:/home/ruser/scripts
+    ports:
+      - "8787:8787"
+
+  rserver:
+    image: rocker/shiny:latest
+    volumes:
+      - ./shiny-apps:/srv/shiny-server/
+      - ./shiny-logs:/var/log/shiny-server
+    ports:
+      - "3838:3838"

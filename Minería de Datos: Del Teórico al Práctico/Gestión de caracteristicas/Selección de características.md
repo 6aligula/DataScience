@@ -1,0 +1,11 @@
+![[Pasted image 20240319131635.png]]
+
+La figura 4 que has subido ilustra un concepto importante en el análisis de datos llamado "definición de características". En un conjunto de datos típico, las filas representan las observaciones individuales y las columnas representan las características que describen estas observaciones. En el contexto de la figura, las observaciones serían los distintos artículos (Alfombra, Silla, Estantería) y las características son los atributos cuantitativos de estos artículos (Unidades, Ventas).
+
+En términos de análisis de datos, estas características o atributos son fundamentales para desarrollar modelos analíticos, ya que proporcionan la información que los algoritmos utilizan para aprender patrones y hacer predicciones.
+
+Sin embargo, no todas las características son igualmente importantes o útiles. Algunas pueden ser irrelevantes para el objetivo del análisis, otras pueden ser redundantes, y otras aún pueden ser ruidosas y confundir al modelo en lugar de ayudarlo. Por eso es tan importante la selección de características (o "feature selection" en inglés), que es el proceso de identificar y seleccionar solo aquellas características que contribuyen de manera significativa al poder predictivo del modelo, mejorando así su rendimiento y eficiencia.
+
+Este proceso no solo ayuda a mejorar la precisión del modelo, sino que también puede reducir la complejidad computacional y evitar el sobreajuste, que es cuando un modelo se adapta demasiado a los datos de entrenamiento y no generaliza bien a nuevos datos. Al seleccionar cuidadosamente las características más relevantes, se puede lograr una representación más eficiente y efectiva del problema que se está tratando de resolver.
+
+Es similar a cómo escribimos código: no queremos abrumar nuestro programa con funciones innecesarias o redundantes. En cambio, nos esforzamos por escribir un código limpio y eficiente, seleccionando las estructuras y funciones que mejor se alinean con los requisitos y objetivos de nuestro software.
