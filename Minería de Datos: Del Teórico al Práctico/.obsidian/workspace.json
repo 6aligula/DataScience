@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Procesado_datos/8Valores ausentes.md",
+                "file": "PEC1/Ejercicio1.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Procesado_datos/8Valores ausentes.md",
+                "file": "PEC1/Ejercicio1.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Procesado_datos/8Valores ausentes.md",
+                "file": "PEC1/Ejercicio1.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Procesado_datos/8Valores ausentes.md"
+                "file": "PEC1/Ejercicio1.md"
               }
             }
           }
@@ -138,20 +138,22 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:Open quick switcher": false,
-      "graph:Open graph view": false,
-      "canvas:Create new canvas": false,
-      "daily-notes:Open today's daily note": false,
-      "templates:Insert template": false,
-      "command-palette:Open command palette": false
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false
     }
   },
   "active": "e1a225cf5da0e68b",
   "lastOpenFiles": [
+    "Procesado_datos/8Valores ausentes.md",
+    "PEC1/Ejercicio1.md",
+    "PEC1",
     "Procesado_datos/Escalado decimal.md",
     "Procesado_datos/6Eliminar outliers mediante técnicas de edición.md",
     "Procesado_datos/7Reducir muestras mediante técnicas de condensación.md",
-    "Procesado_datos/8Valores ausentes.md",
     "Pasted image 20240323140524.png",
     "LLM.md",
     "Pasted image 20240323135511.png",
