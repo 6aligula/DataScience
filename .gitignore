@@ -2,4 +2,4 @@
 *.pyc
 __pycache__/
 *.logS_Store
-/anscombe_env
+pec1_env/
