@@ -18,8 +18,19 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "efe944b7b15132cb",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.5.11"
+              }
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -146,7 +157,7 @@
       "command-palette:Abrir paleta de comandos": false
     }
   },
-  "active": "e1a225cf5da0e68b",
+  "active": "efe944b7b15132cb",
   "lastOpenFiles": [
     "Procesado_datos/8Valores ausentes.md",
     "PEC1/Ejercicio1.md",

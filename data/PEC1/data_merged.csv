@@ -1,0 +1,6 @@
+"ST_CASE","FATALS","DRUNK_DR","LGT_COND","WEATHER","DRUGRES","DRUGRES_CAT","LGT_COND_CAT","WEATHER_CAT","DRUGRES_CAT_Desconocido","DRUGRES_CAT_Negativo o No Probado","DRUGRES_CAT_Positivo","LGT_COND_CAT_Crepúsculo o Amanecer","LGT_COND_CAT_Luz Diurna","LGT_COND_CAT_Oscuridad","LGT_COND_CAT_Otras","WEATHER_CAT_Claro","WEATHER_CAT_Extremas","WEATHER_CAT_Otras","WEATHER_CAT_Precipitaciones"
+10001,5.59172510355927,1.59574326888763,2,1,"1, 0, 1, 1","Negativo o No Probado","Oscuridad","Claro",0,1,0,0,0,1,0,1,0,0,0
+10002,-0.249722454751939,-0.579557022877244,3,2,"151, 402, 177, 0, 0, 0, 0, 0","Positivo","Oscuridad","Precipitaciones",0,0,1,0,0,1,0,0,0,0,1
+10003,-0.249722454751939,-0.579557022877244,1,2,"0, 0","Negativo o No Probado","Luz Diurna","Precipitaciones",0,1,0,0,1,0,0,0,0,0,1
+10004,-0.249722454751939,-0.579557022877244,1,10,"600, 600, 605, 0, 0, 0","Positivo","Luz Diurna","Claro",0,0,1,0,1,0,0,1,0,0,0
+10005,-0.249722454751939,-0.579557022877244,2,2,"0","Negativo o No Probado","Oscuridad","Precipitaciones",0,1,0,0,0,1,0,0,0,0,1

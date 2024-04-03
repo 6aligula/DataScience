@@ -1,0 +1,129 @@
+Drug Toxicology Results
+
+Definition: This element identifies the bodily tissue or fluid used to perform a chemical test for
+the presence of drugs in this person.
+Additional Information: Prior to 2018 this data element’s name was "Drug Test Type" and
+identified the type of drug test that was given to this person. The data element was in the Person
+data file and up to three drug test types could be recorded. See "Drug Test Type" under the
+discontinued data elements of the Person Data file for details.
+
+SAS Name: DRUGSPEC
+
+0 Test Not Given
+1 Whole Blood
+2 Urine
+11 Blood Plasma/Serum
+12 Blood Clot
+13 Oral Fluids
+14 Vitreous
+15 Liver
+96 Not Reported
+97 Unknown Specimen
+98 Other Specimen
+99 Reported as Unknown if Tested
+
+---------------------------------------------------------------------------------------------------
+Drug Test Result
+
+Definition: This data element identifies the drug test result for this person.
+Additional Information: Prior to 2018 this data element was in the Person data file and up to
+three drug results could be recorded. See "D
+
+SAS Name: DRUGRES
+
+2018-Later
+0 Test Not Given
+1 Tested, No Drugs Found/Negative
+95 Not Reported
+100-295 Narcotic
+300-395 Depressant
+400-495 Stimulant
+500-595 Hallucinogen
+600-695 Cannabinoid
+700-795 Phencyclidine (PCP)
+800-895 Anabolic Steroid
+900-995 Inhalant
+996 Other Drug
+997 Tested for Drugs, Results Unknown
+998 Tested for Drugs, Drugs Found, Type Unknown/Positive
+999 Reported as Unknown if Tested for Drugs
+
+------------------------------------------------------------------------------------------------------------------------------
+Definition: This data element records the type/level of light that existed at the time of the crash
+as indicated in the case material.
+
+Additional Information: Prior to 2015 the Data Element ID was C24.
+
+SAS Name: LGT_COND
+
+ 1 Daylight
+ -- Dark
+ 2 Dark – Not Lighted
+ -- Dark but Lighted
+ 3 Dark – Lighted
+ 4 Dawn
+ 5 Dusk
+ -- Dawn or Dusk
+ 6 Dark – Unknown Lighting
+ 7 Other
+ 8 Not Reported
+ -- Unknown
+ 9 Reported as Unknown
+
+-----------------------------------------------------------------------------------------------------------------
+Definition: This derived data element records the prevailing atmospheric conditions that existed
+at the time of the crash as indicated in the case material.
+
+SAS Name: WEATHER
+
+ 1 Clear
+ -- Normal
+ -- No Adverse Atmospheric Conditions
+ -- Clear/Cloud (No Adverse Conditions)
+ 2 Rain
+ -- Rain (Mist)
+ -- Sleet
+ -- Sleet (Hail)
+ -- Sleet, Hail (Freezing Rain or Drizzle)
+ 3 Sleet, Hail
+ 4 Snow
+ -- Snow or Blowing Snow
+ -- Fog
+ 5 Fog, Smog, Smoke
+ -- Rain and Fog
+ 6 Severe Crosswinds
+ -- Sleet and Fog
+ 7 Blowing Sand, Soil, Dirt
+ -- Other: Smog, Smoke, Blowing Sand or Dust
+ 8 Other
+ 10 Cloudy
+ 11 Blowing Snow
+ 12 Freezing Rain or Drizzle
+ 98 Not Reported
+ 99 Reported as Unknown
+
+-----------------------------------------------------------------------------------------------------------------
+En el conjunto de datos, la distribución de registros por cantidad única de muertos es la siguiente:
+
+1 muerto: 33,226 registros
+2 muertos: 2,154 registros
+3 muertos: 289 registros
+4 muertos: 71 registros
+5 muertos: 20 registros
+6 muertos: 4 registros
+7 muertos: 1 registro
+8 muertos: 1 registro
+La cantidad más común de fallecidos en un registro es 1, con 33,226 casos, y las cantidades más altas registradas son 7 y 8 muertos, ambos con 1 registro cada uno.
+
+mi objetivo es:
+Predecir la severidad de los accidentes basándose en la presencia de sustancias como drogas, climatologia y visibilidad.
+
+
+Para lidiar con el desequilibrio de clases, podrías considerar las siguientes técnicas:
+
+1. Re-muestreo de los datos:
+Sobremuestreo de la clase minoritaria: Aumenta la cantidad de muestras en la clase minoritaria replicándolas hasta alcanzar un balance más equitativo. Herramientas como SMOTE (Synthetic Minority Over-sampling Technique) van un paso más allá, creando nuevas instancias sintéticas de la clase minoritaria, en lugar de simplemente replicar las existentes.
+Submuestreo de la clase mayoritaria: Reduce el número de muestras en la clase mayoritaria para igualar el de la clase minoritaria, eliminando algunas instancias.
+
+3. Utilizar métricas de evaluación adecuadas:
+Métricas como precisión, recall, F1-score, y el área bajo la curva ROC (AUC) son particularmente útiles para evaluar modelos en conjuntos de datos desequilibrados, ya que proporcionan una visión más completa del rendimiento del modelo más allá de la simple precisión.

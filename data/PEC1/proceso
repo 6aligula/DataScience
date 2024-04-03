@@ -1,0 +1,700 @@
+necesito hacer esto:
+1. **Preparación y Transformación de Datos**: Selecciona un conjunto de variables de interés, normaliza los datos, y discretiza algunas variables para categorizarlas de acuerdo a criterios específicos (como el horario de los accidentes).
+
+2. **Análisis de Correlación**: Utiliza `corrplot` para visualizar correlaciones entre variables y realizar tests de correlación específicos para examinar la relación entre el número de personas involucradas en accidentes y el número de fatalidades.
+
+3. **Reducción de Dimensionalidad con PCA**: Aplica PCA para reducir la dimensionalidad de los datos, seleccionando los componentes principales basados en la varianza explicada. El código intenta interpretar estos componentes y su contribución a la variabilidad de los datos.
+
+4. **Interpretación y Análisis Final**: Se hacen observaciones generales sobre los datos, incluyendo el impacto de variables como el alcohol en los conductores y la relación entre el número de vehículos, pasajeros, y peatones implicados en los accidentes con el número de muertes.
+
+El enfoque general es exploratorio, buscando entender mejor las relaciones entre variables y preparar los datos para análisis futuros. Este tipo de análisis es fundamental en la ciencia de datos para la toma de decisiones basadas en evidencias y la generación de hipótesis para estudios más detallados o la creación de modelos predictivos.
+------------------------------------------------------------
+y de momento tengo esto:
+---------------------------------------------------
+# 1. Comprensión del Negocio y de los Datos
+Objetivo del Análisis:
+Predecir la severidad de los accidentes basándose en la presencia de sustancias como drogas, climatologia y visibilidad.
+
+Recolección de Datos: Incluir datos relevantes para el objetivo. Incluir la descarga y combinación del set de datos de accidentes con datos adicionales sobre el consumo de drogas.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Cargamos el juego de datos
+path = 'accident.CSV'
+accidentData <- read.csv(path, row.names=NULL)
+
+# Segundo set de datos sobre el consumo de drogas:
+path2 = 'drugs.csv'
+drugData <- read.csv(path2, row.names=NULL)
+
+```
+
+****
+Estructura de los datos de accident.csv:
+****
+```{r}
+structure = str(accidentData)
+```
+**35766** registros
+****
+Estructura de los datos de drogas:
+****
+```{r}
+structure = str(drugData)
+```
+### Resumen del archivo drugs.csv
+
+Número total de entradas (filas): 107,141
+Número total de columnas: 9
+Columnas y sus tipos de datos: Este conjunto de datos incluye principalmente datos numéricos (int64) y algunos campos categóricos (object).
+
+Columnas destacadas:
+
+STATE, STATENAME: Estado donde ocurrió el accidente.
+ST_CASE: Número de caso, una clave que podría usarse para relacionar estos datos con el conjunto de datos de accidentes.
+VEH_NO: Número de vehículo involucrado en el accidente.
+PER_NO: Número de la persona involucrada en el análisis de drogas.
+DRUGSPEC: Código especificando el tipo de especimen tomado para la prueba de drogas.
+DRUGSPECNAME: Nombre del tipo de especimen.
+DRUGRES: Resultado de la prueba de drogas.
+DRUGRESNAME: Nombre del resultado de la prueba de drogas (por ejemplo, "Tested, No Drugs Found/Negative", "FENTANYL").
+
+Este conjunto de datos parece proporcionar información detallada sobre los resultados de las pruebas de drogas relacionadas con los accidentes, incluyendo si se encontraron drogas en los involucrados y qué tipo de drogas fueron detectadas.
+
+
+# 2. Preprocesamiento de Datos
+Limpieza de Datos: Identificar y tratar valores faltantes, errores o valores atípicos. En el caso del consumo de drogas, verificar la consistencia de los datos entre los distintos sets.
+Integración de Datos: Si se incluyen datos de consumo de drogas, integrar estos datos con el conjunto principal de accidentes de tráfico, asegurando una correspondencia correcta entre los registros.
+Selección de Variables: Seleccionar variables relevantes para el análisis, excluyendo la combinación previa utilizada. Se podrían considerar variables como WEATHER, LIGHT_COND, ROAD_COND, y nuevas variables relacionadas con el consumo de drogas.
+
+### Limpieza
+
+El siguiente paso será la limpieza de datos, mirando si hay valores vacíos o nulos.
+#### Comprobando set de datos de drugsData
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+print('NA')
+colSums(is.na(drugData))
+print('Blancos')
+colSums(drugData=="")
+```
+##### Vamos a comprobar si los fines de semana ocurren mas accidentes mortales:
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+#install.packages("dplyr")
+# Cargamos las librerías necesarias
+library(readr)
+library(dplyr)
+library(ggplot2)
+
+# Seleccionamos las columnas de interés
+accidentDataSelected <- accidentData %>%
+  select(ST_CASE, STATE, STATENAME, FATALS, DAY_WEEK)
+
+# Añadir columna 'Tipo_de_día'
+accidentDataSelected <- accidentDataSelected %>%
+  mutate(DAY_TYPE = ifelse(DAY_WEEK %in% c(1, 7), "Fin de Semana", "Entre Semana"))
+
+# Asumiendo que accidentDataSelected ya tiene la columna DAY_TYPE correctamente añadida
+fatalitiesByDayType <- accidentDataSelected %>%
+  group_by(DAY_TYPE) %>%
+  summarise(Total_Fatalities = sum(FATALS))
+
+ggplot(fatalitiesByDayType, aes(x = DAY_TYPE, y = Total_Fatalities, fill = DAY_TYPE)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Total de Fatalidades por Tipo de Día",
+       x = "Tipo de Día",
+       y = "Total de Fatalidades") +
+  scale_fill_brewer(palette = "Set1")
+```
+#### Calculamos el porcentage de diferencia entre las dos columnas:
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Calcular el total de fatalidades
+total_fatalities <- sum(fatalitiesByDayType$Total_Fatalities)
+#total_fatalities
+
+# Añadir una columna de porcentaje
+fatalitiesByDayType$Percentage <- (fatalitiesByDayType$Total_Fatalities / total_fatalities) * 100
+
+# Ver los resultados
+print(fatalitiesByDayType)
+```
+Del total 38824 de las fatalidades registradas, el 66.96% ocurrieron entre semana, mientras que el 33.04% sucedieron durante el fin de semana.
+Esto indica que hay una mayor cantidad de muertes durante los días de semana en comparación con los fines de semana dentro de este conjunto de datos.
+
+###Voy a buscar una relación entre accidentes fatales y el consumo de drogas:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Primero, necesitamos unir los datasets por 'ST_CASE'
+mergedData <- merge(accidentData, drugData, by = "ST_CASE")
+
+# Definimos una nueva columna basada en la clasificación de resultados de drogas
+mergedData <- mergedData %>%
+  mutate(DRUG_RESULT_ADJUSTED = case_when(
+    DRUGRES %in% 100:996 ~ "Positivo",
+    DRUGRES == 998 ~ "Positivo",
+    DRUGRES %in% c(95,997, 999) ~ "Desconocido",
+    TRUE ~ "Negativo o No Probado"
+  ))
+
+# Identificar accidentes con un muerto o mas
+fatalAccidents <- accidentData %>%
+  filter(FATALS > 0) %>%
+  select(ST_CASE, FATALS)
+
+# Encontrar accidentes con al menos un positivo en drogas
+accidentsWithDrugs <- mergedData %>%
+  filter(DRUG_RESULT_ADJUSTED == "Positivo") %>%
+  distinct(ST_CASE) %>%
+  inner_join(fatalAccidents, by = "ST_CASE")
+
+# Contar estos accidentes
+accidentsCount <- nrow(accidentsWithDrugs)
+
+# Calcular el total de accidentes fatales
+totalFatalAccidents <- nrow(fatalAccidents)
+
+# Calcular el número de accidentes sin resultados positivos en drogas
+accidentsWithoutDrugs <- totalFatalAccidents - accidentsCount
+
+# Preparar datos para el gráfico
+dataForPlot <- data.frame(
+  Category = c("Con Drogas", "Sin Drogas"),
+  Count = c(accidentsCount, accidentsWithoutDrugs)
+)
+
+# Calcular porcentajes
+dataForPlot$Percentage <- dataForPlot$Count / sum(dataForPlot$Count) * 100
+
+# Crear gráfico
+ggplot(dataForPlot, aes(x = "", y = Percentage, fill = Category)) +
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "Porcentaje de Accidentes Fatales con y sin Resultados Positivos en Drogas",
+       fill = "Categoría") +
+  geom_text(aes(label = paste0(round(Percentage, 1), "%")), position = position_stack(vjust = 0.5))
+
+# Mostrar el gráfico
+ggsave("accidentes_drogas_porcentaje.png", width = 8, height = 6)
+
+# Imprimir los resultados
+cat("Número de accidentes con un muerto o mas y al menos un positivo en drogas:", accidentsCount, "\n")
+cat("Número total de accidentes fatales:", totalFatalAccidents, "\n")
+
+```
+35% de las fatalidades ocurrieron en casos donde se encontró almenos un resultado positivo en las pruebas de drogas.
+65% de las fatalidades están asociadas a casos donde los resultados de las pruebas de drogas fueron negativos o no se realizaron.
+
+Este análisis resalta la importancia de las medidas preventivas y la educación como herramientas clave para mejorar la seguridad vial y reducir el número de accidentes fatales relacionados con el consumo de drogas.
+
+
+#### Vamos a ver la relacion entre accidentes mortales, drogas y alchol
+```{R}
+# Unimos los datasets por 'ST_CASE'
+mergedData <- merge(accidentData, drugData, by = "ST_CASE")
+
+# Definimos 'DRUG_RESULT_ADJUSTED' basado en la clasificación de los resultados de drogas
+mergedData <- mergedData %>%
+  mutate(DRUG_RESULT_ADJUSTED = case_when(
+    DRUGRES %in% 100:996 ~ "Positivo",
+    DRUGRES == 998 ~ "Positivo",
+    DRUGRES %in% c(95,997, 999) ~ "Desconocido",
+    TRUE ~ "Negativo o No Probado"
+  ))
+
+# Filtrar accidentes con un muerto o más
+fatalAccidents <- accidentData %>%
+  filter(FATALS > 0)
+
+# Contar todos los accidentes fatales únicos
+totalFatalAccidents <- nrow(fatalAccidents)
+
+# Encontrar accidentes fatales con al menos un positivo en drogas
+accidentsWithDrugs <- mergedData %>%
+  filter(DRUG_RESULT_ADJUSTED == "Positivo") %>%
+  distinct(ST_CASE)
+accidentsWithDrugsCount <- nrow(accidentsWithDrugs)
+
+# Calcular accidentes con al menos un resultado positivo en drogas y alcohol
+accidentsWithAlcoholAndDrugs <- mergedData %>%
+  filter(DRUNK_DR > 0, DRUG_RESULT_ADJUSTED == "Positivo") %>%
+  distinct(ST_CASE)
+
+# Contar estos accidentes
+accidentsWithAlcoholAndDrugsCount <- nrow(accidentsWithAlcoholAndDrugs)
+
+# Preparar datos para el gráfico comparativo
+dataForPlot <- data.frame(
+  Category = c("Con Drogas", "Con Alcohol y Drogas"),
+  Count = c(nrow(accidentsWithDrugs), accidentsWithAlcoholAndDrugsCount)
+)
+
+# Calcular porcentajes basados en el total de accidentes fatales
+dataForPlot$Percentage <- dataForPlot$Count / totalFatalAccidents * 100
+
+# Crear gráfico
+ggplot(dataForPlot, aes(x = Category, y = Percentage, fill = Category)) +
+  geom_col() +
+  labs(title = "Porcentaje de Accidentes Fatales con Drogas y Alcohol",
+       y = "Porcentaje",
+       x = "") +
+  geom_text(aes(label = sprintf("%.1f%%", Percentage)), vjust = -0.5)
+
+# Mostrar el gráfico
+ggsave("accidentes_alcohol_drogas_porcentaje.png", width = 8, height = 6)
+
+cat("Total de accidentes fatales ", totalFatalAccidents)
+cat("\nTotal de accidentes fatales con drogas ", accidentsWithDrugsCount)
+cat("\nTotal de accidentes fatales con drogas y alcohol", accidentsWithAlcoholAndDrugsCount)
+```
+El gráfico muestra claramente la relación entre accidentes fatales y el consumo de drogas, con y sin la combinación de alcohol. De los 35,766 accidentes fatales registrados, 4205 (aproximadamente el 11.8%) implicaron tanto drogas como alcohol, mientras que un porcentaje significativamente mayor de 35% estuvo asociado exclusivamente con drogas. Esto sugiere que, si bien el alcohol sigue siendo un factor considerable en los accidentes de tráfico con fatalidades, el uso de drogas representa una preocupación más predominante.
+
+El gráfico y los números indican que del total de accidentes fatales (35,766), un 11.8% de los accidentes involucraron tanto alcohol como drogas. Este porcentaje está incluido en el 35% de accidentes asociados con drogas, lo que significa que el 35% no es exclusivamente drogas, sino que incluye casos con solo drogas y casos con drogas y alcohol
+
+#### Ahora vamos a ver la relación entre accidentes mortales frontales y drogas:
+```{R}
+# Asumiendo que mergedData ya contiene 'DRUG_RESULT_ADJUSTED'
+
+# Identificar accidentes fatales con al menos un positivo en drogas que fueron choques frontales (MAN_COLL = 2)
+accidentsWithDrugsFrontalCollision <- mergedData %>%
+  filter(DRUG_RESULT_ADJUSTED == "Positivo", MAN_COLL == 2) %>%
+  distinct(ST_CASE)
+
+# Contar estos accidentes
+accidentsWithDrugsFrontalCollisionCount <- nrow(accidentsWithDrugsFrontalCollision)
+
+# Añadir al gráfico comparativo la nueva categoría de "Con Drogas y Choque Frontal"
+# Asegurándonos de que el nuevo data frame tenga las mismas columnas que 'dataForPlot'
+dataForPlotExpanded <- rbind(dataForPlot,
+                             data.frame(Category = "Con Drogas y Choque Frontal",
+                                        Count = accidentsWithDrugsFrontalCollisionCount,
+                                        Percentage = NA)) # Añadimos NA para la columna 'Percentage' que luego recalcularemos
+
+# Recalcular porcentajes basados en el total de accidentes fatales para asegurarnos de que todos los porcentajes son correctos
+dataForPlotExpanded$Percentage <- dataForPlotExpanded$Count / totalFatalAccidents * 100
+print(dataForPlotExpanded)
+# Crear gráfico actualizado
+ggplot(dataForPlotExpanded, aes(x = Category, y = Percentage, fill = Category)) +
+  geom_col() +
+  labs(title = "Porcentaje de Accidentes Fatales con Drogas, Alcohol, y Choques Frontales",
+       y = "Porcentaje",
+       x = "") +
+  geom_text(aes(label = sprintf("%.1f%%", Percentage)), vjust = -0.5)
+
+# Mostrar el gráfico actualizado
+ggsave("accidentes_alcohol_drogas_choque_frontal_porcentaje.png", width = 8, height = 6)
+
+```
+Con Drogas (35%): Una cantidad significativa de los accidentes fatales involucran drogas, lo que resalta la influencia significativa del consumo de drogas en la ocurrencia de accidentes mortales.
+
+Con Alcohol y Drogas (11.8%): Una parte considerable de los accidentes fatales incluye tanto alcohol como drogas. Esto apunta a que la combinación de estas sustancias es un factor de riesgo relevante en los accidentes de tráfico mortales.
+
+Con Drogas y Choque Frontal (4.1%): Una menor, pero aún notable, proporción de accidentes fatales implica el uso de drogas en colisiones frontales. Este tipo de colisión es particularmente peligroso y a menudo resulta en consecuencias graves debido a la fuerza del impacto.
+
+Estos insights indican que el consumo de drogas es un factor importante en los accidentes de tráfico mortales y que es aún más crítico cuando se combina con alcohol. Además, los choques frontales, que son altamente peligrosos por sí mismos, son más graves cuando están asociados con el uso de drogas. Estos datos deben servir para informar políticas de tráfico y estrategias de intervención dirigidas a reducir la conducción bajo la influencia de sustancias psicoactivas para mejorar la seguridad vial.
+
+
+#### Ahora voy a ver la relacion de los diferentes tipos de droga con su consumo y la implicación en los accidentes
+```{R}
+# Cargar los datos
+accident_data <- read_csv('accident.CSV', locale = locale(encoding = "latin1"))
+drug_data <- read_csv('drugs.csv', locale = locale(encoding = "latin1"))
+
+# Unir los datos basados en 'ST_CASE'
+merged_data <- inner_join(accident_data, drug_data, by = 'ST_CASE')
+
+# Clasificar los resultados de las pruebas de drogas
+merged_data <- merged_data %>%
+  mutate(DRUG_CATEGORY = case_when(
+    DRUGRES == 0 ~ "Test Not Given",
+    DRUGRES == 1 ~ "Tested, No Drugs Found/Negative",
+    DRUGRES == 95 ~ "Not Reported",
+    DRUGRES >= 100 & DRUGRES <= 295 ~ "Narcotic",
+    DRUGRES >= 300 & DRUGRES <= 395 ~ "Depressant",
+    DRUGRES >= 400 & DRUGRES <= 495 ~ "Stimulant",
+    DRUGRES >= 500 & DRUGRES <= 595 ~ "Hallucinogen",
+    DRUGRES >= 600 & DRUGRES <= 695 ~ "Cannabinoid",
+    DRUGRES >= 700 & DRUGRES <= 795 ~ "Phencyclidine (PCP)",
+    DRUGRES >= 800 & DRUGRES <= 895 ~ "Anabolic Steroid",
+    DRUGRES >= 900 & DRUGRES <= 995 ~ "Inhalant",
+    DRUGRES == 996 ~ "Other Drug",
+    DRUGRES == 997 ~ "Tested for Drugs, Results Unknown",
+    DRUGRES == 998 ~ "Tested for Drugs, Drugs Found, Type Unknown/Positive",
+    DRUGRES == 999 ~ "Reported as Unknown if Tested for Drugs",
+    TRUE ~ "Other"
+  ))
+
+# Conteo de accidentes únicos por categoría de droga
+drugTypeCounts <- merged_data %>%
+  group_by(DRUG_CATEGORY) %>%
+  summarise(Count = n_distinct(ST_CASE)) %>%
+  arrange(desc(Count))
+
+print(drugTypeCounts)
+
+# Visualización de la distribución de tipos de droga
+ggplot(drugTypeCounts, aes(x = reorder(DRUG_CATEGORY, Count), y = Count, fill = DRUG_CATEGORY)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Distribución de Tipos de Drogas en Accidentes Únicos",
+       x = "Categoría de Droga",
+       y = "Número de Accidentes Únicos") +
+  theme_minimal() +
+  scale_fill_viridis_d() +
+  theme(legend.position = "bottom")
+```
+Test Not Given (24,178): La mitad de los casos no incluyeron una prueba de drogas, implicando ausencia de datos sobre la presencia de drogas en estos incidentes. Esto podría reflejar políticas de prueba selectiva, limitaciones de recursos, o la naturaleza específica de cada incidente.
+
+Tested, No Drugs Found/Negative (11,041): Un número significativo de pruebas no reveló la presencia de drogas, indicando resultados negativos. Esto muestra que, aunque se realizan pruebas, no siempre se encuentran sustancias ilegales.
+
+Cannabinoid (6,022): Los cannabinoides representan la tercera categoría más común, sugiriendo que esta clase de sustancia es frecuentemente detectada en accidentes de tráfico donde se realizan pruebas de drogas.
+
+Not Reported (7,159): Una proporción relevante de los informes carece de datos sobre los resultados de las pruebas de drogas, lo cual plantea desafíos para la interpretación de la incidencia total de drogas en accidentes de tráfico y podría influir en la formulación de políticas.
+
+Stimulant (4,797): Los estimulantes también se detectan comúnmente, lo que podría indicar su uso prevalente entre individuos involucrados en accidentes de tráfico.
+
+Other Drug (4,188): Una cantidad considerable de accidentes están vinculados con drogas que no encajan en las otras categorías específicas, sugiriendo una diversidad de sustancias implicadas.
+
+Narcotic (2,317): Aunque menos frecuentes que los cannabinoides y estimulantes, los narcóticos están presentes en una cantidad significativa de accidentes, requiriendo atención debido a sus efectos potentes.
+
+Depressant (1,687): Los depresores, aunque no tan comunes como otras categorías, están asociados con un número notable de accidentes.
+
+Tested for Drugs, Results Unknown (1,187): Existe un grupo de casos donde, a pesar de haberse realizado pruebas, los resultados no se conocen o no se reportaron.
+
+Tested for Drugs, Drugs Found, Type Unknown/Positive (721): Una fracción menor de incidentes donde las pruebas de drogas fueron positivas, pero no se pudo determinar el tipo de droga.
+
+Esta revisión refleja un panorama de la presencia de drogas en accidentes de tráfico, destacando la frecuencia de casos sin prueba de drogas, la incidencia de resultados negativos, y la presencia notable de cannabinoides y estimulantes entre los positivos. La diversidad de sustancias implicadas subraya la complejidad de abordar la conducción bajo la influencia de drogas.
+
+
+# 3. **Ingeniería de Características**:
+Normalización/Escalado:
+
+Selección de Variables Relevantes
+
+Del primer conjunto de datos (accidentes):
+
+ST_CASE: Identificador de accidente, esencial para unir los conjuntos de datos.
+FATALS: Muertes, para medir la severidad.
+DRUNK_DR: Conductores ebrios, indica la influencia del alcohol.
+LGT_COND: Condición lumínica, podría afectar la visibilidad y la probabilidad de accidentes graves.
+WEATHER: Condiciones meteorológicas, factores externos que pueden influir en la severidad.
+
+Del segundo conjunto de datos (consumo de drogas):
+
+ST_CASE: Para vincular con el conjunto de datos de accidentes.
+DRUGRES: Resultado de la prueba de drogas, indicador clave de la presencia de sustancias.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Cargamos el juego de datos
+path = 'accident.CSV'
+accidents_df <- read.csv(path, row.names=NULL, encoding = 'latin1')
+
+# Segundo set de datos sobre el consumo de drogas:
+path2 = 'drugs.csv'
+drugs_df <- read.csv(path2, row.names=NULL)
+#print(accidents_df)
+
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(dplyr)
+# Seleccionar variables relevantes del primer conjunto de datos
+accidents_selected <- select(accidents_df, ST_CASE, FATALS, DRUNK_DR, LGT_COND, WEATHER)
+
+# Seleccionar variables relevantes del segundo conjunto de datos
+# Nota: ST_CASE ya está incluido, así que solo necesitamos añadir DRUGRES
+drugs_selected <- select(drugs_df, ST_CASE, DRUGRES)
+
+# Integrar los datos
+# Aquí optaremos por una agregación de los resultados de las pruebas de drogas por caso,
+# ya que un accidente puede tener múltiples personas involucradas y por lo tanto múltiples registros en 'drugs.csv'
+drugs_aggregated <- drugs_selected %>%
+  group_by(ST_CASE) %>%
+  summarise(DRUGRES = list(DRUGRES))
+
+# Unir los dos conjuntos de datos seleccionados
+data_merged <- merge(accidents_selected, drugs_aggregated, by = "ST_CASE", all.x = TRUE)
+
+# Visualizar las primeras filas del conjunto de datos integrado
+head(data_merged)
+
+```
+
+1.Crear Variables Categóricas a partir de DRUGRES
+Podrías clasificar los resultados de las pruebas de drogas (DRUGRES) en categorías más claras, como "Positivo", "Negativo", o "Desconocido". Esto permitirá analizar los datos más fácilmente y realizar comparaciones significativas entre grupos.
+```{R}
+clasificar_resultados_drugres_v2 <- function(lista_resultados) {
+
+  # Verificar si la lista está vacía o es NA, lo cual puede pasar si el caso no tiene datos de drogas
+  if (is.null(lista_resultados) || length(lista_resultados) == 0 || all(is.na(lista_resultados))) {
+    return("Desconocido")
+  }
+
+  # Asegurarse de que todos los elementos sean numéricos para la comparación
+  lista_resultados <- sapply(lista_resultados, as.numeric)
+
+  # Eliminar NA antes de realizar la clasificación para evitar errores en las comprobaciones
+  lista_resultados <- lista_resultados[!is.na(lista_resultados)]
+
+  # Clasificación basada en los códigos proporcionados
+  positivos <- any(lista_resultados >= 100 & lista_resultados <= 996 | lista_resultados == 998)
+  desconocidos <- any(lista_resultados %in% c(95, 997, 999))
+
+  if (positivos) {
+    return("Positivo")
+  } else if (desconocidos) {
+    return("Desconocido")
+  } else {
+    return("Negativo o No Probado")
+  }
+}
+
+# Aplicar la función ajustada
+data_merged$DRUGRES_CAT <- sapply(data_merged$DRUGRES, clasificar_resultados_drugres_v2)
+
+# Visualizar las primeras filas para verificar la transformación
+#head(select(data_merged, ST_CASE, DRUGRES, DRUGRES_CAT))
+print(data_merged)
+
+resultados_clasificados <- sapply(data_merged$DRUGRES, clasificar_resultados_drugres_v2)
+conteos <- table(resultados_clasificados)
+
+# presentar cada conteo individualmente:
+cat("\nDesglose de clasificaciones:\n")
+cat("Accidentes con positivo en drogas:", conteos["Positivo"], "\n")
+cat("Accidentes con Desconocido:", conteos["Desconocido"], "\n")
+cat("Accidentes con Negativo o No Probado:", conteos["Negativo o No Probado"], "\n")
+```
+Desglose de clasificaciones:
+Accidentes con positivo en drogas: 12534
+Accidentes con Desconocido: 7315
+Accidentes con Negativo o No Probado: 15917
+
+La función sapply() se utiliza para aplicar clasificar_resultados_drugres_v2 a cada elemento de la columna DRUGRES, que se espera contenga listas de resultados de pruebas de drogas.
+
+Positivo: DRUGRES en el rango de 100 a 996, o igual a 998.
+Desconocido: DRUGRES igual a 95, 997, o 999.
+Negativo o No Probado: Cualquier otro caso.
+
+El motivo detrás de la clasificación propuesta, especialmente al tratar el código 95 ("Not Reported") como "Desconocido", es mantener la precisión y fiabilidad en la identificación de accidentes donde las drogas estaban definitivamente presentes. Al clasificar los resultados no reportados como "Desconocidos", se evita asumir incorrectamente la presencia o ausencia de drogas, lo que podría distorsionar el análisis. Este enfoque garantiza que solo se consideren "Positivos" aquellos casos con evidencia clara de drogas, mientras que los casos sin información suficiente se manejan de manera conservadora, evitando conclusiones precipitadas. Es esencial para el análisis enfocarse en datos concretos y evitar interpretaciones erróneas o suposiciones sobre datos incompletos o no reportados.
+
+2. Agrupar LGT_COND y WEATHER en Categorías Más Generales
+Las condiciones de luz (LGT_COND) y el clima (WEATHER) pueden tener muchas categorías específicas que sería útil simplificar para el análisis.
+```{R}
+library(dplyr)
+
+# Definir funciones para agrupar LGT_COND y WEATHER en categorías más generales
+agrupar_lgt_cond <- function(codigo) {
+  if (codigo == 1) {
+    return("Luz Diurna")
+  } else if (codigo %in% c(2, 3, 6)) {
+    return("Oscuridad")
+  } else if (codigo %in% c(4, 5)) {
+    return("Crepúsculo o Amanecer")
+  } else {
+    return("Otras")
+  }
+}
+
+agrupar_weather <- function(codigo) {
+  if (codigo %in% c(1, 10)) {
+    return("Claro")
+  } else if (codigo %in% c(2, 3, 4, 5, 12)) {
+    return("Precipitaciones")
+  } else if (codigo %in% c(6, 7, 11)) {
+    return("Extremas")
+  } else {
+    return("Otras")
+  }
+}
+
+# Aplicar las funciones para crear nuevas columnas con las categorías agrupadas
+data_merged <- data_merged %>%
+  mutate(LGT_COND_CAT = sapply(LGT_COND, agrupar_lgt_cond),
+         WEATHER_CAT = sapply(WEATHER, agrupar_weather))
+
+# Visualizar las primeras filas para verificar las nuevas categorías
+#head(select(data_merged, ST_CASE, LGT_COND, LGT_COND_CAT, WEATHER, WEATHER_CAT))
+
+# Conteo para LGT_COND_CAT
+conteos_lgt_cond_cat <- table(data_merged$LGT_COND_CAT)
+
+# Presentar conteos de LGT_COND_CAT línea por línea
+cat("Conteos por categoría de condiciones de luz (LGT_COND_CAT):\n")
+for(categoria in names(conteos_lgt_cond_cat)) {
+  cat(categoria, ":", conteos_lgt_cond_cat[categoria], "\n")
+}
+
+cat("\n") # Añadir un espacio entre los conteos
+
+# Conteo para WEATHER_CAT
+conteos_weather_cat <- table(data_merged$WEATHER_CAT)
+
+# Presentar conteos de WEATHER_CAT línea por línea
+cat("Conteos por categoría de clima (WEATHER_CAT):\n")
+for(categoria in names(conteos_weather_cat)) {
+  cat(categoria, ":", conteos_weather_cat[categoria], "\n")
+}
+
+# Visualizar todo el dataframe
+print(data_merged)
+```
+
+Condiciones de Luz (LGT_COND)
+Podemos simplificar las condiciones de luz en categorías como "Luz Diurna", "Oscuridad" y "Crepúsculo o Amanecer", junto con "Otras" para incluir casos no reportados o desconocidos.
+
+Luz Diurna: 1
+Oscuridad: 2, 3, 6 (incluye oscuridad no iluminada, oscuridad iluminada y oscuridad con iluminación desconocida)
+Crepúsculo o Amanecer: 4, 5 (dawn y dusk)
+Otras: 7, 8, 9 (otras, no reportadas, desconocidas)
+Condiciones Meteorológicas (WEATHER)
+Para el clima, podríamos agrupar en "Claro", "Precipitaciones", "Extremas" y "Otras" para abarcar todas las posibilidades de manera simplificada.
+
+Claro: 1, 10 (claro, nublado sin condiciones adversas)
+Precipitaciones: 2, 3, 4, 5, 12 (lluvia, granizo, nieve, niebla, lluvia congelante)
+Extremas: 6, 7, 11 (vientos cruzados severos, arena o suciedad soplada, nieve soplada)
+Otras: 8, 98, 99 (otras, no reportadas, desconocidas)
+
+Conclusión:
+
+Condiciones de Luz y Clima
+
+Prevalencia de Accidentes en Oscuridad: La mayor cantidad de accidentes en condiciones de oscuridad plantea preguntas sobre la visibilidad y la percepción de riesgo durante la noche. Investigar más a fondo las medidas de seguridad activas y pasivas en estos contextos podría ser beneficioso.
+
+Impacto del Clima: Mientras que la mayoría de los accidentes ocurren en condiciones climáticas claras, los accidentes bajo condiciones de "Precipitaciones" y "Extremas" merecen atención especial. El impacto de estas condiciones en la capacidad de los conductores para reaccionar a tiempo o en la eficacia de los sistemas de seguridad vehicular podría ser un área de estudio valiosa.
+
+
+ST_CASE: Identificador del caso.
+FATALS: Número de muertes.
+DRUNK_DR: Conductores bajo influencia del alcohol.
+MAN_COLL: Tipo de colisión.
+DAY_WEEK: Día de la semana.
+LGT_COND: Código de condición lumínica (original).
+WEATHER: Código de condición meteorológica (original).
+DRUGRES: Lista de resultados de pruebas de drogas.
+DRUGRES_CAT: Categoría de resultados de pruebas de drogas ("Positivo", "Desconocido", "Negativo o No Probado").
+LGT_COND_CAT: Categorías simplificadas de condiciones lumínicas.
+WEATHER_CAT: Categorías simplificadas de condiciones meteorológicas.
+
+### Paso 1: Prueba de ANOVA
+```{R}
+# ANOVA
+resultado_anova <- aov(FATALS ~ DRUGRES_CAT, data = data_merged)
+summary(resultado_anova)
+
+```
+               Df Sum Sq Mean Sq F value Pr(>F)
+DRUGRES_CAT     2     14   7.051   60.34 <2e-16 ***
+Residuals   35763   4178   0.117
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Interpretación
+La conclusión principal aquí es que existe una asociación estadísticamente significativa entre las categorías de resultados de pruebas de drogas y el número de fallecidos en accidentes. Esto significa que, en promedio, el número de fallecidos varía de manera significativa entre al menos dos de las categorías de resultados de pruebas de drogas.
+
+### Paso 2: Prueba de TUKEY
+```{R}
+# Asegurando que data_merged$DRUGRES_CAT es un factor
+data_merged$DRUGRES_CAT <- as.factor(data_merged$DRUGRES_CAT)
+
+# Ejecutar el modelo ANOVA
+resultado_anova <- aov(FATALS ~ DRUGRES_CAT, data = data_merged)
+
+# Ejecutar el test post-hoc de Tukey
+tukey_res <- TukeyHSD(resultado_anova)
+print(tukey_res)
+```
+
+Interpretación de los Resultados
+Negativo o No Probado vs. Desconocido: La diferencia estimada entre el número medio de fallecidos para los accidentes con resultados de pruebas de drogas "Negativo o No Probado" y aquellos con resultados "Desconocido" es de -0.013695. Esta diferencia es estadísticamente significativa (p = 0.0125), lo que sugiere que hay menos fallecidos en promedio en accidentes donde las pruebas de drogas no se realizaron o resultaron negativas, en comparación con los accidentes donde el resultado de las pruebas de drogas es desconocido.
+
+Positivo vs. Desconocido: La diferencia en el número medio de fallecidos entre los accidentes con resultados de pruebas de drogas "Positivo" y "Desconocido" es de 0.030824. Esta diferencia es altamente significativa (p < 0.0001), indicando que hay más fallecidos en promedio en accidentes con resultados de pruebas de drogas positivas en comparación con aquellos donde el resultado es desconocido.
+
+Positivo vs. Negativo o No Probado: La diferencia entre el número medio de fallecidos para los accidentes con resultados de pruebas de drogas "Positivo" y "Negativo o No Probado" es de 0.044518. Esta diferencia también es muy significativa (p < 0.0001), lo que significa que hay más fallecidos en promedio en accidentes con resultados de pruebas positivas para drogas en comparación con aquellos donde las pruebas no se realizaron o resultaron negativas.
+
+Conclusiones
+Los resultados sugieren que los accidentes donde se identificaron drogas a través de las pruebas tienen, en promedio, un mayor número de fallecidos en comparación con los accidentes donde las pruebas resultaron negativas o no se realizaron. Esto podría indicar que la presencia de drogas es un factor que contribuye a la gravedad de los accidentes.
+
+### Normalizar variables FATALS y DRUNK_DR
+```{R}
+# Estandarización de las variables FATALS y DRUNK_DR
+data_merged$FATALS <- scale(data_merged$FATALS)
+data_merged$DRUNK_DR <- scale(data_merged$DRUNK_DR)
+
+# Verificamos las primeras filas para ver el resultado
+head(data_merged)
+
+```
+
+### Codificación
+```{R}
+#install.packages("fastDummies")
+library(fastDummies)
+
+# Aplicar codificación One-Hot a DRUGRES_CAT
+data_merged <- dummy_cols(data_merged, select_columns = "DRUGRES_CAT")
+
+# Aplicar codificación One-Hot a LGT_COND_CAT
+data_merged <- dummy_cols(data_merged, select_columns = "LGT_COND_CAT")
+
+# Aplicar codificación One-Hot a WEATHER_CAT
+data_merged <- dummy_cols(data_merged, select_columns = "WEATHER_CAT")
+
+# Revisar los primeros registros para confirmar los cambios
+head(data_merged)
+
+# Esto convertirá cada elemento de la lista en una cadena de texto
+data_merged$DRUGRES <- sapply(data_merged$DRUGRES, toString)
+
+# Ahora intenta escribir el archivo CSV
+write.csv(head(data_merged, 5), 'data_merged.csv', row.names = FALSE)
+
+```
+
+Aplico la codificación One-Hot a la variable DRUGRES_CAT y el resultado son dos nuevas columnas: DRUGRES_CAT_Negativo o No Probado y DRUGRES_CAT_Positivo. Cada columna representa una de las categorías de la variable original y tiene valores binarios (0 o 1) indicando la ausencia o presencia de esa categoría específica.
+Realizo el mismo procedimiento con las columnas: LGT_COND_CAT y WEATHER_CAT
+
+# 4. Reducción de Dimensionalidad
+Análisis de Componentes Principales (PCA): Si se incluyen muchas variables, aplicar PCA u otras técnicas para reducir la dimensionalidad, centrando el análisis en las componentes que capturan la mayor parte de la varianza.
+Selección de Características: Utilizar métodos de selección de características para identificar las más relevantes para el objetivo del análisis.
+
+```{R}
+# columnas que quiero mantener
+columnas_deseadas <- c("FATALS", "DRUNK_DR", "DRUGRES_CAT_Desconocido", "DRUGRES_CAT_Negativo o No Probado", "DRUGRES_CAT_Positivo",
+                       "LGT_COND_CAT_Crepúsculo o Amanecer", "LGT_COND_CAT_Luz Diurna", "LGT_COND_CAT_Oscuridad", "LGT_COND_CAT_Otras",
+                       "WEATHER_CAT_Claro", "WEATHER_CAT_Extremas", "WEATHER_CAT_Otras", "WEATHER_CAT_Precipitaciones")
+
+# Seleccionando solo las columnas deseadas
+data_para_analisis <- select(data_merged, all_of(columnas_deseadas))
+
+# Verificar los primeros registros del conjunto de datos resultante
+head(data_para_analisis)
+```
+
+columnas_deseadas es un vector que contiene los nombres de todas las columnas que voy a mantener en mi conjunto de datos final.
+
+Procedo a aplicar PCA
+
+```{R}
+# Aplicar PCA
+resultado_pca <- prcomp(data_para_analisis, center = TRUE, scale. = TRUE)
+
+# Imprimir un resumen de los resultados del PCA
+summary(resultado_pca)
+
+# También puedes visualizar las contribuciones de las variables originales a los componentes principales
+plot(resultado_pca, type = "lines")
+```
+
+Importance of components:
+                          PC1    PC2    PC3    PC4    PC5    PC6     PC7     PC8     PC9   PC10      PC11      PC12      PC13
+Standard deviation     1.4238 1.3942 1.2805 1.1633 1.1031 1.0425 1.00281 0.99896 0.94363 0.9157 1.803e-13 7.082e-14 4.705e-14
+Proportion of Variance 0.1559 0.1495 0.1261 0.1041 0.0936 0.0836 0.07736 0.07676 0.06849 0.0645 0.000e+00 0.000e+00 0.000e+00
+Cumulative Proportion  0.1559 0.3055 0.4316 0.5357 0.6293 0.7129 0.79025 0.86701 0.93550 1.0000 1.000e+00 1.000e+00 1.000e+00
+
+El gráfico muestra la varianza explicada por cada componente principal en PCA. El scree plot es una herramienta visual utilizada para determinar el número de componentes principales a retener. La regla del codo sugiere que debería retener los componentes hasta el punto donde la explicación de la varianza se aplana y deja de caer abruptamente, lo que parece ocurrir alrededor del PC4 o PC5 en el gráfico.
+
+La tabla de importancia de los componentes muestra las desviaciones estándar, la proporción de la varianza explicada por cada componente principal (PC), y la proporción acumulada de la varianza. Se puede ver que los primeros diez componentes explican la totalidad de la varianza en los datos, lo cual es típico cuando el número de componentes seleccionados es igual al número de variables originales. Los últimos tres componentes tienen desviaciones estándar extremadamente pequeñas y no contribuyen a la varianza explicada, lo que indica que no son necesarios.
+
+Basándome en la tabla y el scree plot, parece que podría considerar usar los primeros cuatro o cinco componentes para un análisis posterior, ya que juntos explican más del 50% de la varianza. Esto se alinea con la regla del codo observada en el scree plot.
+
+

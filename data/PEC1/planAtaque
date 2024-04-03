@@ -1,0 +1,41 @@
+Con el objetivo de predecir la severidad de los accidentes basándose en la presencia de sustancias como drogas, es fundamental seleccionar las variables más relevantes que puedan influir en esta relación. A continuación, se sugiere un enfoque para combinar y utilizar las variables de ambos conjuntos de datos, centrándonos en aspectos que podrían estar directamente relacionados con la presencia de sustancias y su impacto en la severidad del accidente.
+
+### Selección de Variables Relevantes
+
+**Del primer conjunto de datos (accidentes):**
+
+1. **`ST_CASE`**: Identificador de accidente, esencial para unir los conjuntos de datos.
+2. **`FATALS`**: Muertes, para medir la severidad.
+3. **`DRUNK_DR`**: Conductores ebrios, indica la influencia del alcohol.
+4. **`MAN_COLL`**: Código de posición de los vehículos, puede relacionarse con la severidad del impacto.
+5. **`DAY_WEEK`**: Día de la semana, para identificar patrones temporales.
+6. **`HOUR`** y **`MINUTE`**: Hora y minuto del accidente, pueden reflejar condiciones de riesgo variables.
+7. **`LGT_COND`**: Condición lumínica, podría afectar la visibilidad y la probabilidad de accidentes graves.
+8. **`WEATHER`**: Condiciones meteorológicas, factores externos que pueden influir en la severidad.
+9. **`VE_TOTAL`**, **`VE_FORMS`**, **`PVH_INVL`**, **`PEDS`**, **`PERSONS`**, **`PERMVIT`**, y **`PERNOTMVIT`**: Estas variables proporcionan un contexto sobre la magnitud del accidente y los involucrados.
+
+**Del segundo conjunto de datos (consumo de drogas):**
+
+1. **`ST_CASE`**: Para vincular con el conjunto de datos de accidentes.
+2. **`DRUGRES`**: Resultado de la prueba de drogas, indicador clave de la presencia de sustancias.
+
+### Proceso Sugerido
+
+1. **Unión de los Datos**: Usar `ST_CASE` para combinar los conjuntos de datos. Esto permitirá analizar la severidad de los accidentes con respecto a la presencia de drogas.
+
+2. **Ingeniería de Características**:
+   - Crear variables binarias o categóricas a partir de `DRUGRES` para reflejar la presencia de drogas de manera más clara (p. ej., positivo/negativo/desconocido).
+   - Convertir `HOUR` y `MINUTE` en un único valor de tiempo para simplificar el análisis.
+   - Agrupar `LGT_COND` y `WEATHER` en categorías más generales si es necesario para reducir la complejidad.
+
+3. **Análisis Exploratorio de Datos (EDA)**: Investigar las relaciones entre la severidad del accidente (`FATALS`) y las variables seleccionadas, utilizando visualizaciones y estadísticas descriptivas.
+
+4. **Modelado Predictivo**:
+   - Seleccionar un modelo adecuado (e.g., regresión logística, árboles de decisión, bosques aleatorios) para predecir la severidad basada en las variables escogidas.
+   - Validar el modelo utilizando particiones de entrenamiento y prueba, y ajustar los parámetros según sea necesario.
+
+5. **Evaluación del Modelo**:
+   - Usar métricas apropiadas (e.g., precisión, recall, F1 score) para evaluar la capacidad del modelo para predecir la severidad de los accidentes.
+   - Interpretar la importancia de las características para entender el impacto de la presencia de drogas y otras variables en la severidad de los accidentes.
+
+Este enfoque proporciona una base sólida para explorar cómo la presencia de drogas y otros factores influyen en la severidad de los accidentes de tráfico. Es crucial iterar sobre este proceso, ajustando la selección de variables y la configuración del modelo según los hallazgos para mejorar la precisión y relevancia de los resultados.

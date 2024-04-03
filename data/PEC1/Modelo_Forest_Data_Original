@@ -1,0 +1,92 @@
+# 5. Minería de Datos
+Elección de Modelos: Seleccionar modelos adecuados para el objetivo, por ejemplo, modelos de clasificación para predecir la severidad de los accidentes.
+Validación Cruzada y Ajuste de Parámetros: Aplicar técnicas de validación cruzada para evaluar la robustez de los modelos y ajustar parámetros según sea necesario.
+
+```{R}
+# install.packages(c("caret", "randomForest"))
+nrow(data_merged)
+print(data_merged)
+```
+
+```{R}
+library(caret)
+library(randomForest)
+
+# Convertir las variables categóricas a factores
+data_merged$DRUGRES_CAT <- as.factor(data_merged$DRUGRES_CAT)
+data_merged$LGT_COND_CAT <- as.factor(data_merged$LGT_COND_CAT)
+data_merged$WEATHER_CAT <- as.factor(data_merged$WEATHER_CAT)
+
+# Definir la variable objetivo y las características
+# La variable objetivo se transforma para clasificar como 1 si hay más de una fatalidad, 0 de lo contrario
+X <- data_merged[, c('DRUNK_DR', 'MAN_COLL', 'DAY_WEEK', 'DRUGRES_CAT', 'LGT_COND_CAT', 'WEATHER_CAT')]
+y <- as.factor(ifelse(data_merged$FATALS > 1, 1, 0))
+
+# Dividir el conjunto de datos en entrenamiento y prueba
+set.seed(42) # Para reproducibilidad
+trainIndex <- createDataPartition(y, p = .8, list = FALSE)
+X_train <- X[trainIndex, ]
+X_test <- X[-trainIndex, ]
+y_train <- y[trainIndex]
+y_test <- y[-trainIndex]
+
+# Ahora que hemos dividido los datos, convertimos y_train y y_test a factores
+y_train <- as.factor(y_train)
+y_test <- as.factor(y_test)
+
+# Construir y entrenar el modelo de Bosque Aleatorio
+rf_model <- randomForest(x = X_train, y = y_train, ntree = 100, mtry = 2)
+
+# Predecir y evaluar el modelo
+y_pred <- predict(rf_model, newdata = X_test)
+accuracy <- mean(y_pred == y_test)
+
+# Importancia de las características
+feature_importances <- varImpPlot(rf_model)
+
+# Mostrar resultados
+cat("Precisión del modelo:", accuracy, "\n")
+
+```
+El modelo de bosque aleatorio ha logrado una precisión del 92.89%, lo cual es bastante alto. La gráfica que adjuntaste muestra la importancia de las diferentes variables en el modelo, basado en el descenso medio del índice Gini. El índice Gini es una medida de la impureza de los nodos en los árboles del bosque; cuanto mayor sea la disminución promedio de Gini, más importante es la variable para hacer las predicciones.
+
+En la gráfica, parece que MAN_COLL (tipo de colisión) es la variable más importante según este criterio, seguida de variables como DAY_WEEK, DRUGRES_CAT, y así sucesivamente. Esto puede darme una idea de qué variables están más fuertemente asociadas con la severidad de los accidentes, aunque siempre es importante recordar que la importancia de las variables no necesariamente implica causalidad.
+
+#### Validacion cruzada
+
+```{R}
+library(caret)
+library(randomForest)
+
+# Asegúrate de que todas las columnas que estarás utilizando en el modelo existan en data_merged
+predictors <- c('DRUNK_DR', 'MAN_COLL', 'DAY_WEEK', 'DRUGRES_CAT', 'LGT_COND_CAT', 'WEATHER_CAT')
+data_merged$Severity <- as.factor(ifelse(data_merged$FATALS > 1, 1, 0))  # Creando la variable objetivo como un factor
+
+# Configuración de control de entrenamiento para validación cruzada
+train_control <- trainControl(method="cv", number=10)
+
+# Entrenar el modelo con validación cruzada
+rf_grid <- expand.grid(mtry=c(2, 3, 4))  # Grid de hiperparámetros a ajustar
+
+set.seed(42)
+rf_model_cv <- train(
+  Severity ~ .,
+  data = data_merged[, c('Severity', predictors)],
+  method = "rf",
+  trControl = train_control,
+  tuneGrid = rf_grid,
+  ntree = 100
+)
+
+# Revisar los resultados
+print(rf_model_cv)
+
+```
+Random Forest ha sido entrenado y validado exitosamente con validación cruzada de 10 pliegues! El resumen muestra que el modelo con mtry = 2 (el número de variables consideradas en cada división) tuvo la mejor precisión promedio, la cual fue seleccionada como la configuración óptima para el modelo.
+
+No obstante, hay un detalle que llama la atención: el valor de Kappa es extremadamente bajo, cercano a cero, lo que indica que podría no haber mucha diferencia entre mis predicciones y lo que se esperaría por azar. Esto es especialmente relevante en conjuntos de datos desequilibrados, como parece ser el caso aquí.
+
+¿Qué Significa un Kappa Bajo?
+El coeficiente Kappa es una medida de la precisión de la clasificación que tiene en cuenta el acuerdo que se podría esperar por azar. Un Kappa de 0 significa que el acuerdo es equivalente al azar, mientras que un Kappa negativo sugiere un acuerdo incluso peor que el azar. En un conjunto de datos desequilibrado donde una clase domina, incluso un clasificador que siempre predice la clase mayoritaria puede alcanzar una alta precisión, lo que no sería informativo. Por eso se utiliza Kappa, para tener una medida más ajustada a la realidad del desempeño del modelo.
+
+#### Corregir las clases:
