@@ -1,0 +1,22 @@
+ 
+Ejercicio 1
+10%. Se explican los campos de la base de datos
+25%. Se aplica el algoritmo de k-means de forma correcta.
+25%. Se prueba con distintos valores de k.
+10%. Se estudia el impacto de los valores extremos
+10%. Se obtiene una medida de lo bien que es el grupo.
+10%. Se describen e interpretan los diferentes clusters obtenidos.
+10%. Se presenta el código y es fácilmente reproducible.
+
+Ejercicio 2
+20%. Se aplican los algoritmos DBSCAN y OPTICA de forma correcta.
+25%. Se prueba con distintos valores de eps.
+10%. Se estudia el impacto de los valores extremos
+25%. Se obtiene una medida de lo bien que es el grupo.
+10%. Se describen e interpretan los diferentes clusters obtenidos.
+10%. Se presenta el código y es fácilmente reproducible.
+
+Ejercicio 3
+35%. Se compara los resultados obtenidos en k-means y DBSCAN.
+35%. Se mencionan pros y contras de ambos algoritmos
+30%. Se expone las conclusiones del trabajo

@@ -1,0 +1,90 @@
+Te paso el set de datos para que lo vuelvas a cargar, limpiar, calcular la media y desviacion estandar y el k-optimo
+
+Para comparar los resultados de las visualizaciones de los clusters:
+Compara tus resultados con los mios:
+
+En el total de 908 registros hay valores NA en las cuatro columnas de interés: 1 en Wing, 10 en Weight, 7 en Culmen y 6 en Hallux.
+
+#### Eliminación de filas con valores NA
+# Selecciono las columnas de interés que no tienen NA
+hawks_clean <- Hawks[complete.cases(Hawks[, c("Wing", "Weight", "Culmen", "Hallux")]), ]
+
+contador <- nrow(hawks_clean)
+print(contador)
+
+# Para la columna Wing
+cat("Valores NA en Wing:", sum(is.na(hawks_clean$Wing)), "\n")
+# Para la columna Weight
+cat("Valores NA en Weight:", sum(is.na(hawks_clean$Weight)), "\n")
+# Para la columna Culmen
+cat("Valores NA en Culmen:", sum(is.na(hawks_clean$Culmen)), "\n")
+# Para la columna Hallux
+cat("Valores NA en Hallux:", sum(is.na(hawks_clean$Hallux)), "\n")
+[1] 891
+Valores NA en Wing: 0
+Valores NA en Weight: 0
+Valores NA en Culmen: 0
+Valores NA en Hallux: 0
+Ahora, examinemos las distribuciones de los valores de las variables numéricas de interés (Wing, Weight, Culmen, y Hallux)
+ Min.   : 37.2   Min.   :  56.0   Min.   : 8.60   Min.   :  9.50
+ 1st Qu.:202.0   1st Qu.: 185.0   1st Qu.:12.80   1st Qu.: 15.10
+ Median :370.0   Median : 970.0   Median :25.50   Median : 29.40
+ Mean   :315.9   Mean   : 771.6   Mean   :21.81   Mean   : 26.41
+ 3rd Qu.:390.0   3rd Qu.:1120.0   3rd Qu.:27.35   3rd Qu.: 31.40
+ Max.   :480.0   Max.   :2030.0   Max.   :39.20   Max.   :341.40
+[1] 95.3167
+[1] 462.9369
+[1] 7.29319
+[1] 17.82554
+Las estadísticas descriptivas y las distribuciones de las variables numéricas "Wing", "Weight", "Culmen", y "Hallux" muestran una interesante variedad en sus valores:
+
+Wing: La longitud de las alas tiene un promedio de 315.9 mm, con una desviación estándar de 95.32 mm. La distribución es bastante amplia, indicando una variabilidad significativa en el tamaño de las alas entre los halcones.
+
+Weight: El peso promedio es de 771.6 g, pero la desviación estándar es alta (462.94 g), lo que sugiere una gran diversidad en el peso de estas aves. Los valores oscilan entre 56 g y 2030 g.
+
+Culmen: Para el culmen, la longitud promedio es de 21.81 mm, con una desviación estándar de 7.29 mm. Esto indica menos variabilidad que en las otras medidas, pero aún así hay una gama significativa.
+
+Hallux: La longitud del hallux tiene un promedio de 26.41 mm. Sin embargo, la desviación estándar es de 17.83 mm, algo inflada por un valor máximo muy alejado de la media (341.4 mm), lo que podría indicar la presencia de valores atípicos extremos o errores de medición.
+
+Las distribuciones de estas variables se visualizan en los histogramas. La presencia de una distribución bimodal en algunas variables sugiere que podría haber subpoblaciones dentro de los datos, posiblemente relacionadas con diferencias entre especies, edades o sexos de los halcones.
+
+----------------------------------------------------------------------------------------------------
+
+Puedes usar el método del codo, para determinar el número óptimo de clústeres y no olvides estandarizar los datos antes de aplicar estos metodos. utiliza una semilla de 123 para la inicializacion de los centroides.
+
+
+Despues de encontrar el k-optimo procede a aplicar PCA y la visualizacion de los clusters
+Antes de explicar los resultados te pasare la imagen que tengo yo como resultado:
+resultado del summary:
+[1] 0.790080885 0.184402867 0.016382792 0.009133456
+
+Codigo:
+library(ggplot2)
+set.seed(123) # Para reproducibilidad
+
+# Aplicar K-Means con 4 clústeres
+kmeans_result <- kmeans(hawks_clean_scaled, centers=4, nstart=25)
+
+# Agregar la asignación de clústeres al conjunto de datos
+hawks_clean_scaled$cluster <- as.factor(kmeans_result$cluster) # Asegúrate de que sea un factor
+
+# Aplicar PCA
+pca_result <- prcomp(hawks_clean_scaled[, -ncol(hawks_clean_scaled)], center = TRUE, scale. = TRUE)
+
+# Crear un data frame con los resultados de PCA para ggplot
+pca_data <- data.frame(pca_result$x)
+pca_data$cluster <- as.factor(hawks_clean_scaled$cluster) # Convertir cluster a factor
+
+# Gráfico de PCA con ggplot2
+ggplot(pca_data, aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(alpha = 0.7) +
+  scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73")) + # Colores manuales para clusters
+  theme_minimal() +
+  ggtitle("PCA Biplot with K-Means Clustering") +
+  xlab("PC1") +
+  ylab("PC2") +
+  theme(legend.title = element_blank())
+
+# Ver la varianza explicada por cada componente principal
+explained_variance <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+explained_variance

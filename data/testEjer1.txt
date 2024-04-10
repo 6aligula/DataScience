@@ -1,0 +1,351 @@
+******
+# Ejemplo guiado 1.2
+## Método de agregación k-means con datos reales
+******
+
+A continuación vamos a ver otro ejemplo de cómo se usan los modelos de agregación. Para ello usaremos el data set **penguins** contenido en el paquete R **palmerpenguins**. Esta base de datos se encuentra descrita en https://cran.r-project.org/web/packages/palmerpenguins/index.html y contiene  mediciones de tamaño, observaciones de puestas y proporciones de isótopos sanguíneos de tres especies de pingüinos observadas en tres islas del archipiélago Palmer, en la Antártida, durante un período de estudio de tres años.
+
+Este dataset está previamente trabajado para que los datos estén limpios y sin errores. De no ser así antes de nada deberíamos buscar errores, valores nulos u *outliers*. Deberíamos tratar de discretizar o eliminar columnas. Incluso realizar este último paso varias veces para comprobar los diferentes resultados y elegir el que mejor rendimiento nos dé. De todos modos contiene algún valor nulo que procederemos a ignorar.
+
+Vamos a visualizar la estructura y resumen de los datos
+
+```{r message= FALSE, warning=FALSE}
+if (!require('palmerpenguins')) install.packages('palmerpenguins')
+library(palmerpenguins)
+palmerpenguins::penguins
+summary(penguins)
+```
+Como se puede comprobar, esta base de datos está pensada para problemas de clasificación supervisada que pretende clasificar cada tipo de pingüino en una de las tres clases o especies existentes (Adelie, Gentoo o Chinstrap). Como en este ejemplo vamos a usar un método no supervisado, transformaremos el problema supervisado original en uno **no supervisado**. Para conseguirlo no usaremos la columna *species*, que es la variable que se quiere predecir. Por lo tanto, intentaremos encontrar agrupaciones usando únicamente los cuatro atributos numéricos que caracterizan a cada especie de pingüino.
+ x <- na.omit(penguins[,3:6])
+Cargamos  los datos y nos quedamos únicamente con las cuatro columnas que definen a cada especie.
+
+```{r message= FALSE, warning=FALSE}
+x_clean <- na.omit(penguins[,c(1,3,4,5,6)])
+x_species <- x_clean[,1]
+x <- x_clean[,2:5]
+```
+Comprobar datos vacios o nulos
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+print('NA')
+colSums(is.na(penguins))
+print('Blancos')
+colSums(penguins=="")
+Planteamos ahora un ejemplo más realista en el que inicialmente no conocemos el número óptimo de clústers. Empecemos probamos con varios valores.
+
+```{r message= FALSE, warning=FALSE}
+d <- daisy(x)
+resultados <- rep(0, 10)
+for (i in c(2,3,4,5,6,7,8,9,10))
+{
+  fit           <- kmeans(x, i)
+  y_cluster     <- fit$cluster
+  sk            <- silhouette(y_cluster, d)
+  resultados[i] <- mean(sk[,3])
+}
+```
+
+Mostramos en un gráfica los valores de las siluetas media de cada prueba para comprobar que número de clústers es el mejor.
+
+```{r message= FALSE, warning=FALSE}
+plot(2:10,resultados[2:10],type="o",col="blue",pch=0,xlab="Número de clusters",ylab="Silueta")
+```
+
+Los valores de la silueta pueden fluctuar en el rango [-1,1], siendo valores cercanos a 1 indicativos de homogeneidad en los grupos y por el contrario valores de la silueta cercanos a -1 son indicativos de poca homogeneidad en los grupos, de modo que quisiéramos encontrarnos en un rango razonablemente cerca de 1.
+
+En el caso de nuestro juego de datos, a pesar de que uno esperaría obtener un valor óptimo para k = 3, parece que del gráfico se desprende que es mejor k = 2.
+
+Sin embargo, merece la pena observar que a partir de k = 3 la pérdida de homogeneidad es relativamente pequeña ya que se mantiene estable en el rango [0.50, 0.56]. Este hecho podría ser un argumento para seleccionar k = 3.
+
+Otra forma de evaluar cual es el mejor número de clústers es considerar el mejor modelo, aquel que ofrece la menor suma de los cuadrados de las distancias de los puntos de cada grupo con respecto a su centro (withinss), con la mayor separación entre centros de grupos (betweenss). Como se puede comprobar es una idea conceptualmente similar a la silueta. Una manera común de hacer la selección del número de clústers consiste en aplicar el método *elbow* (codo), que no es más que la selección del número de clústers en base a la inspección de la gráfica que se obtiene al iterar con el mismo conjunto de datos para distintos valores del número de clústers. Se seleccionará el valor que se encuentra en el "codo" de la curva.
+
+```{r message= FALSE, warning=FALSE}
+resultados <- rep(0, 10)
+for (i in c(2,3,4,5,6,7,8,9,10))
+{
+  fit           <- kmeans(x, i)
+  resultados[i] <- fit$tot.withinss
+}
+plot(2:10,resultados[2:10],type="o",col="blue",pch=0,xlab="Número de clusters",ylab="tot.tot.withinss")
+```
+
+En este caso el número óptimo de clústers son 4 que es cuando la curva comienza a estabilizarse.
+
+También se puede usar la función *kmeansruns* del paquete **fpc** que ejecuta el algoritmo kmeans con un conjunto de valores, para después seleccionar el valor del número de clústers que mejor funcione de acuerdo a dos criterios: la silueta media ("asw") y *Calinski-Harabasz* ("ch").
+
+```{r message= FALSE, warning=FALSE}
+if (!require('fpc')) install.packages('fpc')
+library(fpc)
+fit_ch  <- kmeansruns(x, krange = 1:10, criterion = "ch")
+fit_asw <- kmeansruns(x, krange = 1:10, criterion = "asw")
+```
+
+Podemos comprobar el valor con el que se ha obtenido el mejor resultado y también mostrar el resultado obtenido para todos los valores de k usando ambos criterios
+
+```{r message= FALSE, warning=FALSE}
+fit_ch$bestk
+fit_asw$bestk
+
+plot(1:10,fit_ch$crit,type="o",col="blue",pch=0,xlab="Número de clústers",ylab="Criterio Calinski-Harabasz")
+plot(1:10,fit_asw$crit,type="o",col="blue",pch=0,xlab="Número de clústers",ylab="Criterio silueta media")
+```
+
+Los resultados son muy parecidos a los que hemos obtenido anteriormente. Con el criterio de la silueta media se obtienen dos clústers y con el *Calinski-Harabasz* se obtienen 3.
+
+Como se ha comprobado, conocer el número óptimo de clústers no es un problema fácil. Tampoco lo es la evaluación de los modelos de agregación.
+
+Como en el caso que estudiamos sabemos que los datos pueden ser agrupados en 3 clases o especies, vamos a ver cómo se ha comportado *kmeans* en el caso de pedirle 3 clústers. Para eso comparamos visualmente los campos dos a dos, con el valor real que sabemos está almacenado en el campo "species" del dataset original.
+
+(Aclaramos que obviamente no acostumbra a pasar que conozcamos de forma previa el número de clústers óptimo. Este ejemplo lo planteamos con finalidades didácticas y con voluntad de experimentar)
+
+```{r message= FALSE, warning=FALSE}
+penguins3clusters <- kmeans(x, 3)
+
+# bill_lLength y bill_depth
+plot(x[c(1,2)], col=penguins3clusters$cluster, main="Clasificación k-means")
+plot(x[c(1,2)], col=as.factor(x_species$species), main="Clasificación real")
+```
+
+Podemos observar que *flipper_length* y *body_mass* no son buenos indicadores para diferenciar a las tres subespecies, dado que dos de las subespecies están demasiado mezcladas para poder diferenciar nada.
+
+```{r message= FALSE, warning=FALSE}
+# flipper_length y body_mass
+plot(x[c(3,4)], col=penguins3clusters$cluster, main="Clasificación k-means")
+plot(x[c(3,4)], col=as.factor(x_species$species), main="Clasificación real")
+```
+
+```{r message= FALSE, warning=FALSE}
+# bill_length y flipper_length
+plot(x[c(1,3)], col=penguins3clusters$cluster, main="Clasificación k-means")
+plot(x[c(1,3)], col=as.factor(x_species$species), main="Clasificación real")
+```
+
+Las dos medidas de *bill* parecen lograr mejores resultados al dividir las tres especies de pingüinos. El grupo formado por los puntos negros que ha encontrado el algoritmo coincide con los de la especie *Adelie*. Los otros dos grupos sin embargo se entremezclan algo más, y hay ciertos puntos que se clasifican como *Gentoo* (verde) cuando en realidad son *Chinstrap* (rojo).
+
+ Una buena técnica que ayuda a entender los grupos que se han formado, es mirar de darles un nombre. Cómo por ejemplo:
+
+ - Grupo 1: Sólo *Adelie* (color negro)
+ - Grupo 2: Principalmente *Chinstrap* (color rojo)
+ - Grupo 3: Mezcla de *Gentoo* (color verde) y *Adelie* (color negro)
+
+Esto nos ayuda a entender cómo están formados los grupos y a referirnos a ellos en análisis posteriores.
+
+Todo esto nos indica que el número de grupos o clúsers en un juego de datos no es un aspecto que podamos asegurar que siempre vamos a encontrar de forma precisa y objetiva, bien al contrario es un ámbito que requiere de análisis en sí mismo.
+
+¿Entiendes lo que se esta haciendo?
+
+
+----------------------------------------------------------------------------------------------------
+
+
+# Ejercicios
+Los ejercicios se realizarán en base al juego de datos *Hawks* presente en el paquete R *Stat2Data*.
+
+Los estudiantes y el profesorado del Cornell College en Mount Vernon, Iowa, recogieron datos durante muchos años en el mirador de halcones del lago MacBride, cerca de Iowa City, en el estado de Iowa. El conjunto de datos que analizamos aquí es un subconjunto del conjunto de datos original, utilizando sólo aquellas especies para las que había más de 10 observaciones. Los datos se recogieron en muestras aleatorias de tres especies diferentes de halcones: Colirrojo, Gavilán y Halcón de Cooper.
+
+Hemos seleccionado este juego de datos por su parecido con el juego de datos *penguins* y por su potencial a la hora de aplicarle algoritmos de minería de datos no supervisados. Las variables numéricas en las que os basaréis son: *Wing*, *Weight*, *Culmen*, *Hallux*
+
+
+```{r message= FALSE, warning=FALSE}
+if (!require('Stat2Data')) install.packages('Stat2Data')
+library(Stat2Data)
+data("Hawks")
+summary(Hawks)
+```
+
+## Ejercicio 1
+Presenta el juego de datos, nombre y significado de cada columna, así como las distribuciones de sus valores.
+
+Realiza un estudio aplicando el método K-means, similar al de los ejemplos 1.1 y 1.2
+
+### Respuesta 1
+> Escribe aquí la respuesta a la pregunta
+
+```{r message= FALSE, warning=FALSE}
+contador <- nrow(Hawks)
+print(contador)
+
+# Primero, revisamos la cantidad de valores NA en cada una de las columnas de interés
+
+# Para la columna Wing
+cat("Valores NA en Wing:", sum(is.na(Hawks$Wing)), "\n")
+
+# Para la columna Weight
+cat("Valores NA en Weight:", sum(is.na(Hawks$Weight)), "\n")
+
+# Para la columna Culmen
+cat("Valores NA en Culmen:", sum(is.na(Hawks$Culmen)), "\n")
+
+# Para la columna Hallux
+cat("Valores NA en Hallux:", sum(is.na(Hawks$Hallux)), "\n")
+
+```
+En el total de 908 registros hay valores NA en las cuatro columnas de interés: 1 en Wing, 10 en Weight, 7 en Culmen y 6 en Hallux.
+
+Wing: Longitud del ala del halcón en milímetros. Esta medida puede ser indicativa del tamaño general y la capacidad de vuelo del ave.
+Weight: Peso del halcón en gramos. Es un indicador clave de la salud y el bienestar del ave, así como de su capacidad para cazar y sobrevivir.
+Culmen: Longitud del culmen (parte superior del pico) en milímetros. Puede indicar adaptaciones específicas para diferentes tipos de dieta.
+Hallux: Longitud del hallux (dedo trasero) en milímetros. Es importante para agarrar y sujetar presas.
+
+Las demás columnas proporcionan información adicional sobre cada observación, como:
+
+rownames: Un identificador único para cada observación.
+Month, Day, Year: Fecha de la observación.
+CaptureTime, ReleaseTime: Hora de captura y liberación del halcón.
+BandNumber: Número de banda o anillo identificativo puesto al halcón.
+Species: Especie del halcón observado. Las abreviaturas representan diferentes especies.
+Age: Edad del halcón, indicada como inmaduro (I) o adulto (A).
+Sex: Sexo del halcón, si es conocido.
+Tail: Longitud de la cola en milímetros.
+StandardTail, Tarsus, WingPitFat, KeelFat, Crop: Otras mediciones y observaciones realizadas que podrían no estar completas para todos los registros.
+
+#### Eliminación de filas con valores NA
+
+```{r}
+# Selecciono las columnas de interés que no tienen NA
+hawks_clean <- Hawks[complete.cases(Hawks[, c("Wing", "Weight", "Culmen", "Hallux")]), ]
+
+contador <- nrow(hawks_clean)
+print(contador)
+
+# Para la columna Wing
+cat("Valores NA en Wing:", sum(is.na(hawks_clean$Wing)), "\n")
+# Para la columna Weight
+cat("Valores NA en Weight:", sum(is.na(hawks_clean$Weight)), "\n")
+# Para la columna Culmen
+cat("Valores NA en Culmen:", sum(is.na(hawks_clean$Culmen)), "\n")
+# Para la columna Hallux
+cat("Valores NA en Hallux:", sum(is.na(hawks_clean$Hallux)), "\n")
+```
+
+Ahora, examinemos las distribuciones de los valores de las variables numéricas de interés (Wing, Weight, Culmen, y Hallux)
+```{r message= FALSE, warning=FALSE}
+# Cargando las librerías necesarias
+library(ggplot2)
+
+# Calculando estadísticas descriptivas para las columnas de interés
+estadisticas_descriptivas <- summary(hawks_clean[,c("Wing", "Weight", "Culmen", "Hallux")])
+print(estadisticas_descriptivas)
+
+# Calculo de la desviacion estandar.
+sd(hawks_clean$Wing)
+sd(hawks_clean$Weight)
+sd(hawks_clean$Culmen)
+sd(hawks_clean$Hallux)
+
+# Creando histogramas para cada una de las variables numéricas de interés
+p1 <- ggplot(hawks_clean, aes(x=Wing)) + geom_histogram(binwidth=5, fill="blue", color="black") +
+  ggtitle("Distribución de Wing (Longitud del ala)") + xlab("Wing") + ylab("Frecuencia")
+
+p2 <- ggplot(hawks_clean, aes(x=Weight)) + geom_histogram(binwidth=10, fill="red", color="black") +
+  ggtitle("Distribución de Weight (Peso)") + xlab("Weight") + ylab("Frecuencia")
+
+p3 <- ggplot(hawks_clean, aes(x=Culmen)) + geom_histogram(binwidth=1, fill="green", color="black") +
+  ggtitle("Distribución de Culmen (Longitud del culmen)") + xlab("Culmen") + ylab("Frecuencia")
+
+p4 <- ggplot(hawks_clean, aes(x=Hallux)) + geom_histogram(binwidth=1, fill="orange", color="black") +
+  ggtitle("Distribución de Hallux (Longitud del hallux)") + xlab("Hallux") + ylab("Frecuencia")
+
+# Para visualizar los gráficos, simplemente imprímelos uno por uno o utiliza la función 'grid.arrange()' de 'gridExtra' si deseas verlos todos juntos
+# Imprimiendo uno por uno
+print(p1)
+print(p2)
+print(p3)
+print(p4)
+```
+Las estadísticas descriptivas y las distribuciones de las variables numéricas "Wing", "Weight", "Culmen", y "Hallux" muestran una interesante variedad en sus valores:
+
+Wing: La longitud de las alas tiene un promedio de 315.9 mm, con una desviación estándar de 95.32 mm. La distribución es bastante amplia, indicando una variabilidad significativa en el tamaño de las alas entre los halcones.
+
+Weight: El peso promedio es de 771.6 g, pero la desviación estándar es alta (462.94 g), lo que sugiere una gran diversidad en el peso de estas aves. Los valores oscilan entre 56 g y 2030 g.
+
+Culmen: Para el culmen, la longitud promedio es de 21.81 mm, con una desviación estándar de 7.29 mm. Esto indica menos variabilidad que en las otras medidas, pero aún así hay una gama significativa.
+
+Hallux: La longitud del hallux tiene un promedio de 26.41 mm. Sin embargo, la desviación estándar es de 17.83 mm, algo inflada por un valor máximo muy alejado de la media (341.4 mm), lo que podría indicar la presencia de valores atípicos extremos o errores de medición.
+
+Las distribuciones de estas variables se visualizan en los histogramas. La presencia de una distribución bimodal en algunas variables sugiere que podría haber subpoblaciones dentro de los datos, posiblemente relacionadas con diferencias entre especies, edades o sexos de los halcones.
+
+#### Analisis de cluster con los datos limpios:
+Metodo del codo:
+```{r}
+library(cluster) # para la función daisy y silhouette
+library(factoextra) # para fviz_nbclust (visualización)
+
+# Asegurándonos de limpiar los datos correctamente y escalarlos
+hawks_clean <- na.omit(Hawks[,c("Wing", "Weight", "Culmen", "Hallux")])
+# Estandarización de los datos
+hawks_clean_scaled <- scale(hawks_clean)
+contador <- nrow(hawks_clean_scaled)
+print(contador)
+
+# Analizando el número óptimo de clústeres
+set.seed(123) # Para reproducibilidad
+
+# Método del codo
+wss <- (nrow(hawks_clean_scaled)-1)*sum(apply(hawks_clean_scaled,2,var))
+for (i in 2:10) wss[i] <- sum(kmeans(hawks_clean_scaled, centers=i)$withinss)
+plot(1:10, wss, type="b", xlab="Número de Clústeres", ylab="Within groups sum of squares")
+
+```
+Método del Codo (Datos Estandarizados): La suma de cuadrados interna (SSE) disminuye a medida que aumenta el número de clústeres, mostrando una inflexión menos pronunciada alrededor de 4 clústeres. Esto sugiere que 4 podría ser un número óptimo de clústeres.
+
+Metodo de la silueta:
+```{r}
+# Calculamos los valores de silueta para diferentes números de clústeres
+sil_widths <- numeric(9)  # Para almacenar los promedios de las anchuras de silueta
+
+for(k in 2:10) {
+  km_res <- kmeans(hawks_clean_scaled, centers = k, nstart = 25)
+  silhouette_res <- silhouette(km_res$cluster, dist(hawks_clean_scaled))
+  sil_widths[k-1] <- mean(silhouette_res[, 3])  # Almacenamos la anchura media de la silueta
+}
+
+# Visualizamos los resultados
+plot(2:10, sil_widths, type = "b", pch = 19, xlab = "Número de clústeres", ylab = "Anchura media de la silueta",
+     main = "Método de la Silueta para Determinar el Número Óptimo de Clústeres")
+
+# Opcional: Identificamos el número de clústeres con la mayor anchura media de la silueta
+optimal_clusters <- which.max(sil_widths) + 1  # Sumamos 1 porque nuestro ciclo inicia en 2
+cat("El número óptimo de clústeres sugerido por la silueta es:", optimal_clusters, "\n")
+
+```
+La gráfica de la silueta muestra un pico en 3 clústeres, lo que indica que, en promedio, los clústeres están bien definidos y separados cuando se dividen los datos en tres grupos. El hecho de que el valor más alto de la anchura de la silueta se dé en 3 clústeres sugiere que cada observación encaja bastante bien en su propio clúster y no tan bien en los otros clústeres.
+
+El método del codo sugería 4 como el número óptimo de clústeres, lo cual está cercano a la sugerencia del método de la silueta. La pequeña discrepancia entre los dos métodos es común, ya que cada uno mide aspectos ligeramente diferentes de la calidad del clúster. Mientras que el método del codo se enfoca en la varianza dentro de los clústeres, la silueta mide cuán separados están los clústeres entre sí.
+
+```{r}
+library(ggplot2)
+set.seed(123) # Para reproducibilidad
+
+# Aplicar K-Means con 4 clústeres
+kmeans_result <- kmeans(hawks_clean_scaled, centers=4, nstart=25)
+
+# Agregar la asignación de clústeres al conjunto de datos
+hawks_clean_scaled$cluster <- as.factor(kmeans_result$cluster) # Asegúrate de que sea un factor
+
+# Aplicar PCA
+pca_result <- prcomp(hawks_clean_scaled[, -ncol(hawks_clean_scaled)], center = TRUE, scale. = TRUE)
+
+# Crear un data frame con los resultados de PCA para ggplot
+pca_data <- data.frame(pca_result$x)
+pca_data$cluster <- as.factor(hawks_clean_scaled$cluster) # Convertir cluster a factor
+
+# Gráfico de PCA con ggplot2
+ggplot(pca_data, aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(alpha = 0.7) +
+  scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73")) + # Colores manuales para clusters
+  theme_minimal() +
+  ggtitle("PCA Biplot with K-Means Clustering") +
+  xlab("PC1") +
+  ylab("PC2") +
+  theme(legend.title = element_blank())
+
+# Ver la varianza explicada por cada componente principal
+explained_variance <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+explained_variance
+```
+La gráfica muestra la distribución de los puntos en las dos primeras componentes principales con los puntos coloreados según su cluster asignado.
+
+En cuanto a la varianza explicada por cada componente principal, los resultados son:
+
+PC1: Aproximadamente el 79.01% de la varianza.
+PC2: Aproximadamente el 18.44% de la varianza.

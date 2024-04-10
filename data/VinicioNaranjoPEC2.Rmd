@@ -1,0 +1,354 @@
+---
+title: 'Minería de datos: PEC2 - Métodos no supervisados'
+author: "Autor: Nombre estudiante"
+date: "Marzo 2024"
+output:
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+    includes:
+      in_header: 75.584-PEC-header.html
+  pdf_document:
+    highlight: zenburn
+    toc: yes
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Por el Grado en Ciencia de Datos Aplicada:
+
+Utilizar de forma combinada los fundamentos matemáticos, estadísticos y de programación para desarrollar soluciones a problemas en el ámbito de la ciencia de datos.
+Aplicar técnicas específicas de captura, tratamiento y análisis de datos estructurados, semi-estructurados y no estructurados.
+Resumir, interpretar, presentar y contrastar de forma crítica los resultados obtenidos utilizando las herramientas de análisis y visualización más adecuadas.
+
+# Ejercicios
+Los ejercicios se realizarán en base al juego de datos *Hawks* presente en el paquete R *Stat2Data*.  
+
+Los estudiantes y el profesorado del Cornell College en Mount Vernon, Iowa, recogieron datos durante muchos años en el mirador de halcones del lago MacBride, cerca de Iowa City, en el estado de Iowa. El conjunto de datos que analizamos aquí es un subconjunto del conjunto de datos original, utilizando sólo aquellas especies para las que había más de 10 observaciones. Los datos se recogieron en muestras aleatorias de tres especies diferentes de halcones: Colirrojo, Gavilán y Halcón de Cooper.  
+
+Hemos seleccionado este juego de datos por su parecido con el juego de datos *penguins* y por su potencial a la hora de aplicarle algoritmos de minería de datos no supervisados. Las variables numéricas en las que os basaréis son: *Wing*, *Weight*, *Culmen*, *Hallux*  
+
+
+```{r message= FALSE, warning=FALSE}
+if (!require('Stat2Data')) install.packages('Stat2Data')
+library(Stat2Data)
+data("Hawks")
+summary(Hawks)
+```
+
+## Ejercicio 1
+Presenta el juego de datos, nombre y significado de cada columna, así como las distribuciones de sus valores.  
+
+Realiza un estudio aplicando el método K-means, similar al de los ejemplos 1.1 y 1.2   
+
+### Respuesta 1
+> Escribe aquí la respuesta a la pregunta
+
+```{r message= FALSE, warning=FALSE}
+contador <- nrow(Hawks)
+print(contador)
+
+# Primero, revisamos la cantidad de valores NA en cada una de las columnas de interés
+
+# Para la columna Wing
+cat("Valores NA en Wing:", sum(is.na(Hawks$Wing)), "\n")
+
+# Para la columna Weight
+cat("Valores NA en Weight:", sum(is.na(Hawks$Weight)), "\n")
+
+# Para la columna Culmen
+cat("Valores NA en Culmen:", sum(is.na(Hawks$Culmen)), "\n")
+
+# Para la columna Hallux
+cat("Valores NA en Hallux:", sum(is.na(Hawks$Hallux)), "\n")
+
+```
+En el total de 908 registros hay valores NA en las cuatro columnas de interés: 1 en Wing, 10 en Weight, 7 en Culmen y 6 en Hallux.
+
+Wing: Longitud del ala del halcón en milímetros. Esta medida puede ser indicativa del tamaño general y la capacidad de vuelo del ave.
+Weight: Peso del halcón en gramos. Es un indicador clave de la salud y el bienestar del ave, así como de su capacidad para cazar y sobrevivir.
+Culmen: Longitud del culmen (parte superior del pico) en milímetros. Puede indicar adaptaciones específicas para diferentes tipos de dieta.
+Hallux: Longitud del hallux (dedo trasero) en milímetros. Es importante para agarrar y sujetar presas.
+
+Las demás columnas proporcionan información adicional sobre cada observación, como:
+
+rownames: Un identificador único para cada observación.
+Month, Day, Year: Fecha de la observación.
+CaptureTime, ReleaseTime: Hora de captura y liberación del halcón.
+BandNumber: Número de banda o anillo identificativo puesto al halcón.
+Species: Especie del halcón observado. Las abreviaturas representan diferentes especies.
+Age: Edad del halcón, indicada como inmaduro (I) o adulto (A).
+Sex: Sexo del halcón, si es conocido.
+Tail: Longitud de la cola en milímetros.
+StandardTail, Tarsus, WingPitFat, KeelFat, Crop: Otras mediciones y observaciones realizadas que podrían no estar completas para todos los registros.
+
+#### Eliminación de filas con valores NA
+
+```{r}
+# Selecciono las columnas de interés que no tienen NA
+hawks_clean <- Hawks[complete.cases(Hawks[, c("Wing", "Weight", "Culmen", "Hallux")]), ]
+
+contador <- nrow(hawks_clean)
+print(contador)
+
+# Para la columna Wing
+cat("Valores NA en Wing:", sum(is.na(hawks_clean$Wing)), "\n")
+# Para la columna Weight
+cat("Valores NA en Weight:", sum(is.na(hawks_clean$Weight)), "\n")
+# Para la columna Culmen
+cat("Valores NA en Culmen:", sum(is.na(hawks_clean$Culmen)), "\n")
+# Para la columna Hallux
+cat("Valores NA en Hallux:", sum(is.na(hawks_clean$Hallux)), "\n")
+```
+
+Ahora, examinemos las distribuciones de los valores de las variables numéricas de interés (Wing, Weight, Culmen, y Hallux)
+```{r message= FALSE, warning=FALSE}
+# Cargando las librerías necesarias
+library(ggplot2)
+
+# Calculando estadísticas descriptivas para las columnas de interés
+estadisticas_descriptivas <- summary(hawks_clean[,c("Wing", "Weight", "Culmen", "Hallux")])
+print(estadisticas_descriptivas)
+
+# Calculo de la desviacion estandar.
+sd(hawks_clean$Wing)
+sd(hawks_clean$Weight)
+sd(hawks_clean$Culmen)
+sd(hawks_clean$Hallux)
+
+# Creando histogramas para cada una de las variables numéricas de interés
+p1 <- ggplot(hawks_clean, aes(x=Wing)) + geom_histogram(binwidth=5, fill="blue", color="black") +
+  ggtitle("Distribución de Wing (Longitud del ala)") + xlab("Wing") + ylab("Frecuencia")
+
+p2 <- ggplot(hawks_clean, aes(x=Weight)) + geom_histogram(binwidth=10, fill="red", color="black") +
+  ggtitle("Distribución de Weight (Peso)") + xlab("Weight") + ylab("Frecuencia")
+
+p3 <- ggplot(hawks_clean, aes(x=Culmen)) + geom_histogram(binwidth=1, fill="green", color="black") +
+  ggtitle("Distribución de Culmen (Longitud del culmen)") + xlab("Culmen") + ylab("Frecuencia")
+
+p4 <- ggplot(hawks_clean, aes(x=Hallux)) + geom_histogram(binwidth=1, fill="orange", color="black") +
+  ggtitle("Distribución de Hallux (Longitud del hallux)") + xlab("Hallux") + ylab("Frecuencia")
+
+# Para visualizar los gráficos, simplemente imprímelos uno por uno o utiliza la función 'grid.arrange()' de 'gridExtra' si deseas verlos todos juntos
+# Imprimiendo uno por uno
+print(p1)
+print(p2)
+print(p3)
+print(p4)
+```
+Las estadísticas descriptivas y las distribuciones de las variables numéricas "Wing", "Weight", "Culmen", y "Hallux" muestran una interesante variedad en sus valores:
+
+Wing: La longitud de las alas tiene un promedio de 315.9 mm, con una desviación estándar de 95.32 mm. La distribución es bastante amplia, indicando una variabilidad significativa en el tamaño de las alas entre los halcones.
+
+Weight: El peso promedio es de 771.6 g, pero la desviación estándar es alta (462.94 g), lo que sugiere una gran diversidad en el peso de estas aves. Los valores oscilan entre 56 g y 2030 g.
+
+Culmen: Para el culmen, la longitud promedio es de 21.81 mm, con una desviación estándar de 7.29 mm. Esto indica menos variabilidad que en las otras medidas, pero aún así hay una gama significativa.
+
+Hallux: La longitud del hallux tiene un promedio de 26.41 mm. Sin embargo, la desviación estándar es de 17.83 mm, algo inflada por un valor máximo muy alejado de la media (341.4 mm), lo que podría indicar la presencia de valores atípicos extremos o errores de medición.
+
+Las distribuciones de estas variables se visualizan en los histogramas. La presencia de una distribución bimodal en algunas variables sugiere que podría haber subpoblaciones dentro de los datos, posiblemente relacionadas con diferencias entre especies, edades o sexos de los halcones.
+
+
+
+#### Distrubuciónes de los valores de las variables numéricas de interés sin limpiar (Wing, Weight, Culmen, y Hallux):
+```{r}
+contador <- nrow(Hawks)
+print(contador)
+# Calculando estadísticas descriptivas para las columnas de interés
+estadisticas_descriptivas <- summary(Hawks[,c("Wing", "Weight", "Culmen", "Hallux")])
+print(estadisticas_descriptivas)
+
+# Calculo de la desviacion estandar: El argumento na.rm = TRUE indica a R que ignore los valores NA al calcular la desviación estándar.
+sd(Hawks$Wing, na.rm = TRUE)
+sd(Hawks$Weight, na.rm = TRUE)
+sd(Hawks$Culmen, na.rm = TRUE)
+sd(Hawks$Hallux, na.rm = TRUE)
+
+
+# Creando histogramas para cada una de las variables numéricas de interés
+p1 <- ggplot(Hawks, aes(x=Wing)) + geom_histogram(binwidth=5, fill="blue", color="black") +
+  ggtitle("Distribución de Wing (Longitud del ala)") + xlab("Wing") + ylab("Frecuencia")
+
+p2 <- ggplot(Hawks, aes(x=Weight)) + geom_histogram(binwidth=10, fill="red", color="black") +
+  ggtitle("Distribución de Weight (Peso)") + xlab("Weight") + ylab("Frecuencia")
+
+p3 <- ggplot(Hawks, aes(x=Culmen)) + geom_histogram(binwidth=1, fill="green", color="black") +
+  ggtitle("Distribución de Culmen (Longitud del culmen)") + xlab("Culmen") + ylab("Frecuencia")
+
+p4 <- ggplot(Hawks, aes(x=Hallux)) + geom_histogram(binwidth=1, fill="orange", color="black") +
+  ggtitle("Distribución de Hallux (Longitud del hallux)") + xlab("Hallux") + ylab("Frecuencia")
+
+# Visualizar los gráficos, imprimiendo uno por uno
+print(p1)
+print(p2)
+print(p3)
+print(p4)
+
+```
+Las estadísticas descriptivas y las distribuciones de las variables numéricas "Wing", "Weight", "Culmen", y "Hallux" muestran una interesante variedad en sus valores:
+
+Wing: La longitud de las alas tiene un promedio de 315.64 mm, con una desviación estándar de 95.28 mm. La distribución es bastante amplia, indicando una variabilidad significativa en el tamaño de las alas entre los halcones.
+
+Weight: El peso promedio es de 772.08 g, pero la desviación estándar es alta (462.31 g), lo que sugiere una gran diversidad en el peso de estas aves. Los valores oscilan entre 56 g y 2030 g.
+
+Culmen: Para el culmen, la longitud promedio es de 21.80 mm, con una desviación estándar de 7.28 mm. Esto indica menos variabilidad que en las otras medidas, pero aún así hay una gama significativa.
+
+Hallux: La longitud del hallux tiene un promedio de 26.41 mm. Sin embargo, la desviación estándar es de 17.73 mm, algo inflada por un valor máximo muy alejado de la media (341.4 mm), lo que podría indicar la presencia de valores atípicos extremos o errores de medición.
+
+Las distribuciones de estas variables se visualizan en los histogramas. La presencia de una distribución bimodal en algunas variables sugiere que podría haber subpoblaciones dentro de los datos, posiblemente relacionadas con diferencias entre especies, edades o sexos de los halcones.
+
+Estos resultados muestran ligeras variaciones en las medias y desviaciones estándar comparadas con el conjunto de datos despues de ser sanitizado (limpio), lo que es esperable al no eliminar filas con valores NA. La limpieza de los datos no solo asegura un análisis más preciso, sino que también puede afectar ligeramente las estadísticas descriptivas del conjunto de datos debido a la exclusión de ciertos registros. 
+
+
+#### Analisis de cluster con los datos limpios:
+Metodo del codo:
+```{r}
+library(cluster) # para la función daisy y silhouette
+library(factoextra) # para fviz_nbclust (visualización)
+
+# Asegurándonos de limpiar los datos correctamente y escalarlos
+hawks_clean <- na.omit(Hawks[,c("Wing", "Weight", "Culmen", "Hallux")])
+# Estandarización de los datos
+hawks_clean_scaled <- scale(hawks_clean)
+
+# Comprobamos que hawks_clean_scaled es una matriz numérica
+if(is.matrix(hawks_clean_scaled)) {
+  print("hawks_clean_scaled es una matriz")
+} else {
+  print("hawks_clean_scaled no es una matriz")
+}
+
+contador <- nrow(hawks_clean_scaled)
+print(contador)
+
+# Analizando el número óptimo de clústeres
+set.seed(123) # Para reproducibilidad
+
+# Método del codo
+wss <- (nrow(hawks_clean_scaled)-1)*sum(apply(hawks_clean_scaled,2,var))
+for (i in 2:10) wss[i] <- sum(kmeans(hawks_clean_scaled, centers=i)$withinss)
+plot(1:10, wss, type="b", xlab="Número de Clústeres", ylab="Within groups sum of squares")
+
+```
+Método del Codo (Datos Estandarizados): La suma de cuadrados interna (SSE) disminuye a medida que aumenta el número de clústeres, mostrando una inflexión menos pronunciada alrededor de 4 clústeres. Esto sugiere que 4 podría ser un número óptimo de clústeres.
+
+Metodo de la silueta:
+```{r}
+# Calculamos los valores de silueta para diferentes números de clústeres
+sil_widths <- numeric(9)  # Para almacenar los promedios de las anchuras de silueta
+
+for(k in 2:10) {
+  km_res <- kmeans(hawks_clean_scaled, centers = k, nstart = 25)
+  silhouette_res <- silhouette(km_res$cluster, dist(hawks_clean_scaled))
+  sil_widths[k-1] <- mean(silhouette_res[, 3])  # Almacenamos la anchura media de la silueta
+}
+
+# Visualizamos los resultados
+plot(2:10, sil_widths, type = "b", pch = 19, xlab = "Número de clústeres", ylab = "Anchura media de la silueta",
+     main = "Método de la Silueta para Determinar el Número Óptimo de Clústeres")
+
+# Opcional: Identificamos el número de clústeres con la mayor anchura media de la silueta
+optimal_clusters <- which.max(sil_widths) + 1  # Sumamos 1 porque nuestro ciclo inicia en 2
+cat("El número óptimo de clústeres sugerido por la silueta es:", optimal_clusters, "\n")
+
+
+# Comprobamos que hawks_clean_scaled es una matriz numérica
+if(is.matrix(hawks_clean_scaled)) {
+  print("hawks_clean_scaled es una matriz")
+} else {
+  print("hawks_clean_scaled no es una matriz")
+}
+```
+La gráfica de la silueta muestra un pico en 3 clústeres, lo que indica que, en promedio, los clústeres están bien definidos y separados cuando se dividen los datos en tres grupos. El hecho de que el valor más alto de la anchura de la silueta se dé en 3 clústeres sugiere que cada observación encaja bastante bien en su propio clúster y no tan bien en los otros clústeres.
+
+El método del codo sugería 4 como el número óptimo de clústeres, lo cual está cercano a la sugerencia del método de la silueta. La pequeña discrepancia entre los dos métodos es común, ya que cada uno mide aspectos ligeramente diferentes de la calidad del clúster. Mientras que el método del codo se enfoca en la varianza dentro de los clústeres, la silueta mide cuán separados están los clústeres entre sí.
+
+```{r}
+set.seed(123) # Para reproducibilidad
+
+# Comprobamos que hawks_clean_scaled es una matriz numérica
+if(is.matrix(hawks_clean_scaled)) {
+  print("hawks_clean_scaled es una matriz")
+} else {
+  print("hawks_clean_scaled no es una matriz")
+}
+
+# Aplicar K-Means con 4 clústeres
+kmeans_result <- kmeans(hawks_clean_scaled, centers=4, nstart=25)
+
+# Guardo la asignación de clústeres en un objeto separado, no en la matriz escalada
+cluster_assignments <- as.factor(kmeans_result$cluster)
+
+# Aplicar PCA sin incluir la última columna, que ya no existe como tal
+# Aseguramos que hawks_clean_scaled no ha sido modificado desde su escalado
+pca_result <- prcomp(hawks_clean_scaled, center = TRUE, scale. = TRUE)
+
+# Crear un data frame con los resultados de PCA para ggplot
+pca_data <- data.frame(pca_result$x)
+# Añadimos la asignación de clústeres desde el objeto separado
+pca_data$cluster <- cluster_assignments
+
+# Gráfico de PCA con ggplot2
+ggplot(pca_data, aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(alpha = 0.7) +
+  scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73")) + # Colores manuales para clusters
+  theme_minimal() +
+  ggtitle("PCA Biplot with K-Means Clustering") +
+  xlab("PC1") +
+  ylab("PC2") +
+  theme(legend.title = element_blank())
+
+# Ver la varianza explicada por cada componente principal
+explained_variance <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+explained_variance
+```
+La gráfica muestra la distribución de los puntos en las dos primeras componentes principales con los puntos coloreados según su cluster asignado.
+
+En cuanto a la varianza explicada por cada componente principal, los resultados son:
+
+PC1: Aproximadamente el 79.01% de la varianza.
+PC2: Aproximadamente el 18.44% de la varianza.
+
+
+Identifico las diferentes especies segun la columna Species:
+```{r}
+# Limpiar los datos de NA en las columnas de interés
+hawks_clean <- na.omit(Hawks[, c("Wing", "Weight", "Culmen", "Hallux", "Species")])
+
+# Calcular las variaciones en la columna 'Species' y sus nombres
+species_variations <- table(hawks_clean$Species)
+species_names <- names(species_variations)
+
+# Imprimir los resultados
+print(species_variations)
+print(species_names)
+```
+En la columna Species del conjunto de datos limpio, existen tres variaciones diferentes con los siguientes nombres y conteos:
+
+RT: 567 registros.
+SS: 255 registros.
+CH: 69 registros.
+
+Esto es un resultado prometedor y sugiere que las variables numéricas seleccionadas (Wing, Weight, Culmen, Hallux) son efectivas para diferenciar entre las especies de halcones en tu conjunto de datos.
+
+Esta correspondencia puede reforzar la idea de que las medidas físicas de los halcones son buenos indicadores de sus especies, ya que los clústeres generados por k-means se alinean bien con la clasificación biológica. En términos de interpretación, esto significa que el modelo de agrupamiento no supervisado es capaz de capturar información biológicamente relevante, aún sin haber sido instruido explícitamente para hacerlo.
+
+
+## Ejercicio 2
+Con el juego de datos proporcionado realiza un estudio aplicando DBSCAN(algoritmo de densidad) y OPTICS, similar al del ejemplo 2  
+
+### Respuesta 2
+> Escribe aquí la respuesta a la pregunta
+
+## Ejercicio 3
+Realiza una comparativa de los métodos *k-means* y *DBSCAN*    
+
+### Respuesta 3
+> Escribe aquí la respuesta a la pregunta
+
