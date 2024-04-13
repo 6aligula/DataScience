@@ -349,3 +349,34 @@ En cuanto a la varianza explicada por cada componente principal, los resultados 
 
 PC1: Aproximadamente el 79.01% de la varianza.
 PC2: Aproximadamente el 18.44% de la varianza.
+
+La gráfica muestra la distribución de los puntos en las dos primeras componentes principales con los puntos coloreados según su cluster asignado.
+
+En cuanto a la varianza explicada por cada componente principal, los resultados son:
+
+PC1: Aproximadamente el 79.01% de la varianza.
+PC2: Aproximadamente el 18.44% de la varianza.
+
+
+Identifico las diferentes especies segun la columna Species:
+```{r}
+# Limpiar los datos de NA en las columnas de interés
+hawks_clean <- na.omit(Hawks[, c("Wing", "Weight", "Culmen", "Hallux", "Species")])
+
+# Calcular las variaciones en la columna 'Species' y sus nombres
+species_variations <- table(hawks_clean$Species)
+species_names <- names(species_variations)
+
+# Imprimir los resultados
+print(species_variations)
+print(species_names)
+```
+En la columna Species del conjunto de datos limpio, existen tres variaciones diferentes con los siguientes nombres y conteos:
+
+RT: 567 registros.
+SS: 255 registros.
+CH: 69 registros.
+
+Esto es un resultado prometedor y sugiere que las variables numéricas seleccionadas (Wing, Weight, Culmen, Hallux) son efectivas para diferenciar entre las especies de halcones en tu conjunto de datos.
+
+Esta correspondencia puede reforzar la idea de que las medidas físicas de los halcones son buenos indicadores de sus especies, ya que los clústeres generados por k-means se alinean bien con la clasificación biológica. En términos de interpretación, esto significa que el modelo de agrupamiento no supervisado es capaz de capturar información biológicamente relevante, aún sin haber sido instruido explícitamente para hacerlo.

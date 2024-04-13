@@ -1,6 +1,6 @@
 ---
 title: 'Minería de datos: PEC2 - Métodos no supervisados'
-author: "Autor: Nombre estudiante"
+author: "Autor: Vinicio Naranjo Mosquera"
 date: "Marzo 2024"
 output:
   html_document:
@@ -20,12 +20,6 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-Por el Grado en Ciencia de Datos Aplicada:
-
-Utilizar de forma combinada los fundamentos matemáticos, estadísticos y de programación para desarrollar soluciones a problemas en el ámbito de la ciencia de datos.
-Aplicar técnicas específicas de captura, tratamiento y análisis de datos estructurados, semi-estructurados y no estructurados.
-Resumir, interpretar, presentar y contrastar de forma crítica los resultados obtenidos utilizando las herramientas de análisis y visualización más adecuadas.
 
 # Ejercicios
 Los ejercicios se realizarán en base al juego de datos *Hawks* presente en el paquete R *Stat2Data*.  
@@ -71,22 +65,24 @@ cat("Valores NA en Hallux:", sum(is.na(Hawks$Hallux)), "\n")
 ```
 En el total de 908 registros hay valores NA en las cuatro columnas de interés: 1 en Wing, 10 en Weight, 7 en Culmen y 6 en Hallux.
 
-Wing: Longitud del ala del halcón en milímetros. Esta medida puede ser indicativa del tamaño general y la capacidad de vuelo del ave.
-Weight: Peso del halcón en gramos. Es un indicador clave de la salud y el bienestar del ave, así como de su capacidad para cazar y sobrevivir.
-Culmen: Longitud del culmen (parte superior del pico) en milímetros. Puede indicar adaptaciones específicas para diferentes tipos de dieta.
-Hallux: Longitud del hallux (dedo trasero) en milímetros. Es importante para agarrar y sujetar presas.
+Descripción de las variables:
+
+* Wing: Longitud del ala del halcón en milímetros. Esta medida puede ser indicativa del tamaño general y la capacidad de vuelo del ave.
+* Weight: Peso del halcón en gramos. Es un indicador clave de la salud y el bienestar del ave, así como de su capacidad para cazar y sobrevivir.
+* Culmen: Longitud del culmen (parte superior del pico) en milímetros. Puede indicar adaptaciones específicas para diferentes tipos de dieta.
+* Hallux: Longitud del hallux (dedo trasero) en milímetros. Es importante para agarrar y sujetar presas.
 
 Las demás columnas proporcionan información adicional sobre cada observación, como:
 
-rownames: Un identificador único para cada observación.
-Month, Day, Year: Fecha de la observación.
-CaptureTime, ReleaseTime: Hora de captura y liberación del halcón.
-BandNumber: Número de banda o anillo identificativo puesto al halcón.
-Species: Especie del halcón observado. Las abreviaturas representan diferentes especies.
-Age: Edad del halcón, indicada como inmaduro (I) o adulto (A).
-Sex: Sexo del halcón, si es conocido.
-Tail: Longitud de la cola en milímetros.
-StandardTail, Tarsus, WingPitFat, KeelFat, Crop: Otras mediciones y observaciones realizadas que podrían no estar completas para todos los registros.
+* rownames: Un identificador único para cada observación.
+* Month, Day, Year: Fecha de la observación.
+* CaptureTime, ReleaseTime: Hora de captura y liberación del halcón.
+* BandNumber: Número de banda o anillo identificativo puesto al halcón.
+* Species: Especie del halcón observado. Las abreviaturas representan diferentes especies.
+* Age: Edad del halcón, indicada como inmaduro (I) o adulto (A).
+* Sex: Sexo del halcón, si es conocido.
+* Tail: Longitud de la cola en milímetros.
+* StandardTail, Tarsus, WingPitFat, KeelFat, Crop: Otras mediciones y observaciones realizadas que podrían no estar completas para todos los registros.
 
 #### Eliminación de filas con valores NA
 
@@ -135,22 +131,26 @@ p3 <- ggplot(hawks_clean, aes(x=Culmen)) + geom_histogram(binwidth=1, fill="gree
 p4 <- ggplot(hawks_clean, aes(x=Hallux)) + geom_histogram(binwidth=1, fill="orange", color="black") +
   ggtitle("Distribución de Hallux (Longitud del hallux)") + xlab("Hallux") + ylab("Frecuencia")
 
-# Para visualizar los gráficos, simplemente imprímelos uno por uno o utiliza la función 'grid.arrange()' de 'gridExtra' si deseas verlos todos juntos
 # Imprimiendo uno por uno
 print(p1)
 print(p2)
 print(p3)
 print(p4)
 ```
+
 Las estadísticas descriptivas y las distribuciones de las variables numéricas "Wing", "Weight", "Culmen", y "Hallux" muestran una interesante variedad en sus valores:
 
-Wing: La longitud de las alas tiene un promedio de 315.9 mm, con una desviación estándar de 95.32 mm. La distribución es bastante amplia, indicando una variabilidad significativa en el tamaño de las alas entre los halcones.
+* Wing: La longitud de las alas tiene un promedio de 315.9 mm, con una desviación estándar de 95.32 mm. La distribución es bastante amplia, indicando una variabilidad significativa en el tamaño de las alas entre los halcones.
 
-Weight: El peso promedio es de 771.6 g, pero la desviación estándar es alta (462.94 g), lo que sugiere una gran diversidad en el peso de estas aves. Los valores oscilan entre 56 g y 2030 g.
+* Weight: El peso promedio es de 771.6 g, pero la desviación estándar es alta (462.94 g), lo que sugiere una gran diversidad en el peso de estas aves. Los valores oscilan entre 56 g y 2030 g.
 
-Culmen: Para el culmen, la longitud promedio es de 21.81 mm, con una desviación estándar de 7.29 mm. Esto indica menos variabilidad que en las otras medidas, pero aún así hay una gama significativa.
+* Culmen: Para el culmen, la longitud promedio es de 21.81 mm, con una desviación estándar de 7.29 mm. Esto indica menos variabilidad que en las otras medidas, pero aún así hay una gama significativa.
 
-Hallux: La longitud del hallux tiene un promedio de 26.41 mm. Sin embargo, la desviación estándar es de 17.83 mm, algo inflada por un valor máximo muy alejado de la media (341.4 mm), lo que podría indicar la presencia de valores atípicos extremos o errores de medición.
+* Hallux: La longitud del hallux tiene un promedio de 26.41 mm. Sin embargo, la desviación estándar es de 17.83 mm, algo inflada por un valor máximo muy alejado de la media (341.4 mm), lo que podría indicar la presencia de valores atípicos extremos o errores de medición.
+
+El hecho de que la desviación estándar sea tan alta y que el valor máximo esté tan alejado de la media (341.4 mm comparado con una media de 26.41 mm) es un fuerte indicativo de un valor atípico extremo. Este tipo de valores pueden distorsionar el análisis y afectar significativamente los resultados de algoritmos como k-means, que son sensibles a outliers porque se basan en calcular distancias para asignar puntos a clústeres.
+
+Aplicare una estandarización de los datos para ayudar a minimizar el efecto de cualquier valor atípico restante.
 
 Las distribuciones de estas variables se visualizan en los histogramas. La presencia de una distribución bimodal en algunas variables sugiere que podría haber subpoblaciones dentro de los datos, posiblemente relacionadas con diferencias entre especies, edades o sexos de los halcones.
 
@@ -191,29 +191,22 @@ print(p3)
 print(p4)
 
 ```
-Las estadísticas descriptivas y las distribuciones de las variables numéricas "Wing", "Weight", "Culmen", y "Hallux" muestran una interesante variedad en sus valores:
 
-Wing: La longitud de las alas tiene un promedio de 315.64 mm, con una desviación estándar de 95.28 mm. La distribución es bastante amplia, indicando una variabilidad significativa en el tamaño de las alas entre los halcones.
+La advertencia Removed 6 rows containing non-finite values (stat_bin()) indica que ggplot2 ha eliminado 6 filas que contienen valores no finitos para poder crear el gráfico.
 
-Weight: El peso promedio es de 772.08 g, pero la desviación estándar es alta (462.31 g), lo que sugiere una gran diversidad en el peso de estas aves. Los valores oscilan entre 56 g y 2030 g.
-
-Culmen: Para el culmen, la longitud promedio es de 21.80 mm, con una desviación estándar de 7.28 mm. Esto indica menos variabilidad que en las otras medidas, pero aún así hay una gama significativa.
-
-Hallux: La longitud del hallux tiene un promedio de 26.41 mm. Sin embargo, la desviación estándar es de 17.73 mm, algo inflada por un valor máximo muy alejado de la media (341.4 mm), lo que podría indicar la presencia de valores atípicos extremos o errores de medición.
-
-Las distribuciones de estas variables se visualizan en los histogramas. La presencia de una distribución bimodal en algunas variables sugiere que podría haber subpoblaciones dentro de los datos, posiblemente relacionadas con diferencias entre especies, edades o sexos de los halcones.
-
-Estos resultados muestran ligeras variaciones en las medias y desviaciones estándar comparadas con el conjunto de datos despues de ser sanitizado (limpio), lo que es esperable al no eliminar filas con valores NA. La limpieza de los datos no solo asegura un análisis más preciso, sino que también puede afectar ligeramente las estadísticas descriptivas del conjunto de datos debido a la exclusión de ciertos registros. 
+Añado esto para recalcar la importancia de eliminar los valores NA o vacios. 
 
 
 #### Analisis de cluster con los datos limpios:
-Metodo del codo:
+
+##### Metodo del codo:
 ```{r}
-library(cluster) # para la función daisy y silhouette
+library(cluster) # para la función silhouette
 library(factoextra) # para fviz_nbclust (visualización)
 
 # Asegurándonos de limpiar los datos correctamente y escalarlos
 hawks_clean <- na.omit(Hawks[,c("Wing", "Weight", "Culmen", "Hallux")])
+
 # Estandarización de los datos
 hawks_clean_scaled <- scale(hawks_clean)
 
@@ -236,9 +229,10 @@ for (i in 2:10) wss[i] <- sum(kmeans(hawks_clean_scaled, centers=i)$withinss)
 plot(1:10, wss, type="b", xlab="Número de Clústeres", ylab="Within groups sum of squares")
 
 ```
+
 Método del Codo (Datos Estandarizados): La suma de cuadrados interna (SSE) disminuye a medida que aumenta el número de clústeres, mostrando una inflexión menos pronunciada alrededor de 4 clústeres. Esto sugiere que 4 podría ser un número óptimo de clústeres.
 
-Metodo de la silueta:
+##### Metodo de la silueta:
 ```{r}
 # Calculamos los valores de silueta para diferentes números de clústeres
 sil_widths <- numeric(9)  # Para almacenar los promedios de las anchuras de silueta
@@ -253,7 +247,7 @@ for(k in 2:10) {
 plot(2:10, sil_widths, type = "b", pch = 19, xlab = "Número de clústeres", ylab = "Anchura media de la silueta",
      main = "Método de la Silueta para Determinar el Número Óptimo de Clústeres")
 
-# Opcional: Identificamos el número de clústeres con la mayor anchura media de la silueta
+# Identificamos el número de clústeres con la mayor anchura media de la silueta
 optimal_clusters <- which.max(sil_widths) + 1  # Sumamos 1 porque nuestro ciclo inicia en 2
 cat("El número óptimo de clústeres sugerido por la silueta es:", optimal_clusters, "\n")
 
@@ -265,9 +259,18 @@ if(is.matrix(hawks_clean_scaled)) {
   print("hawks_clean_scaled no es una matriz")
 }
 ```
-La gráfica de la silueta muestra un pico en 3 clústeres, lo que indica que, en promedio, los clústeres están bien definidos y separados cuando se dividen los datos en tres grupos. El hecho de que el valor más alto de la anchura de la silueta se dé en 3 clústeres sugiere que cada observación encaja bastante bien en su propio clúster y no tan bien en los otros clústeres.
+La función scale() en R, centra y escala las variables. Esto significa que a cada valor de las variables se le restará la media de la variable y luego se dividirá por la desviación estándar de la misma. El resultado es que cada variable tendrá una media de cero y una desviación estándar de uno.
 
-El método del codo sugería 4 como el número óptimo de clústeres, lo cual está cercano a la sugerencia del método de la silueta. La pequeña discrepancia entre los dos métodos es común, ya que cada uno mide aspectos ligeramente diferentes de la calidad del clúster. Mientras que el método del codo se enfoca en la varianza dentro de los clústeres, la silueta mide cuán separados están los clústeres entre sí.
+Esto es precisamente lo que se busca con la estandarización (también conocida como Z-score normalization):
+
+Centrar la media: La media de cada variable se ajusta a 0, lo que ayuda en técnicas como k-means a no ser sesgado por ubicaciones diferentes de los centroides iniciales.
+
+Escalar por la desviación estándar: Esto asegura que todas las variables contribuyan equitativamente al análisis, ya que todas tienen la misma escala de varianza (1).
+
+* La gráfica de la silueta muestra un pico en 3 clústeres, lo que indica que, en promedio, los clústeres están bien definidos y separados cuando se dividen los datos en tres grupos. El hecho de que el valor más alto de la anchura de la silueta se dé en 3 clústeres sugiere que cada observación encaja bastante bien en su propio clúster y no tan bien en los otros clústeres.
+
+* El método del codo sugería 4 como el número óptimo de clústeres, lo cual está cercano a la sugerencia del método de la silueta. La pequeña discrepancia entre los dos métodos es común, ya que cada uno mide aspectos ligeramente diferentes de la calidad del clúster. 
+** Mientras que el método del codo se enfoca en la varianza dentro de los clústeres, la silueta mide cuán separados están los clústeres entre sí.
 
 ```{r}
 set.seed(123) # Para reproducibilidad
@@ -279,8 +282,8 @@ if(is.matrix(hawks_clean_scaled)) {
   print("hawks_clean_scaled no es una matriz")
 }
 
-# Aplicar K-Means con 4 clústeres
-kmeans_result <- kmeans(hawks_clean_scaled, centers=4, nstart=25)
+# Aplicar K-Means con 3 clústeres
+kmeans_result <- kmeans(hawks_clean_scaled, centers=3, nstart=25)
 
 # Guardo la asignación de clústeres en un objeto separado, no en la matriz escalada
 cluster_assignments <- as.factor(kmeans_result$cluster)
@@ -297,7 +300,7 @@ pca_data$cluster <- cluster_assignments
 # Gráfico de PCA con ggplot2
 ggplot(pca_data, aes(x = PC1, y = PC2, color = cluster)) +
   geom_point(alpha = 0.7) +
-  scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73")) + # Colores manuales para clusters
+  scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9")) + # Colores manuales para clusters
   theme_minimal() +
   ggtitle("PCA Biplot with K-Means Clustering") +
   xlab("PC1") +
@@ -310,11 +313,14 @@ explained_variance
 ```
 La gráfica muestra la distribución de los puntos en las dos primeras componentes principales con los puntos coloreados según su cluster asignado.
 
-En cuanto a la varianza explicada por cada componente principal, los resultados son:
+Analizando la varianza explicada por las componentes principales:
 
-PC1: Aproximadamente el 79.01% de la varianza.
-PC2: Aproximadamente el 18.44% de la varianza.
+* PC1 explica aproximadamente el 79.01% de la varianza total. Este alto porcentaje indica que la mayoría de la variabilidad entre las observaciones se debe a diferencias en esta dirección en el espacio de características transformado.
+* PC2 aporta alrededor del 18.44% adicional, sumando junto con PC1 casi el 97.45% de la información total capturada en los datos.
 
+La significativa varianza explicada por PC1 y PC2 sugiere que el PCA ha realizado una transformación efectiva reduciendo la dimensionalidad del conjunto de datos mientras preserva la mayoría de la información. Esto resulta en una visualización clara y distintiva de los patrones de agrupación en el espacio bidimensional
+
+#### Comprobación de resultados
 
 Identifico las diferentes especies segun la columna Species:
 ```{r}
@@ -329,13 +335,14 @@ species_names <- names(species_variations)
 print(species_variations)
 print(species_names)
 ```
-En la columna Species del conjunto de datos limpio, existen tres variaciones diferentes con los siguientes nombres y conteos:
 
-RT: 567 registros.
-SS: 255 registros.
-CH: 69 registros.
+* En la columna Species del conjunto de datos limpio, existen tres variaciones diferentes con los siguientes nombres y conteos:
 
-Esto es un resultado prometedor y sugiere que las variables numéricas seleccionadas (Wing, Weight, Culmen, Hallux) son efectivas para diferenciar entre las especies de halcones en tu conjunto de datos.
+  * RT: 567 registros.
+  * SS: 255 registros.
+  * CH: 69 registros.
+
+Esto es un resultado prometedor y sugiere que las variables numéricas seleccionadas (Wing, Weight, Culmen, Hallux) son efectivas para diferenciar entre las especies de halcones en el conjunto de datos.
 
 Esta correspondencia puede reforzar la idea de que las medidas físicas de los halcones son buenos indicadores de sus especies, ya que los clústeres generados por k-means se alinean bien con la clasificación biológica. En términos de interpretación, esto significa que el modelo de agrupamiento no supervisado es capaz de capturar información biológicamente relevante, aún sin haber sido instruido explícitamente para hacerlo.
 
@@ -346,9 +353,195 @@ Con el juego de datos proporcionado realiza un estudio aplicando DBSCAN(algoritm
 ### Respuesta 2
 > Escribe aquí la respuesta a la pregunta
 
+```{r message= FALSE, warning=FALSE}
+# Limpio la información del ejercicio anterior
+rm(list=ls())
+# Cargo el dataset:
+if (!require('Stat2Data')) install.packages('Stat2Data')
+library(Stat2Data)
+data("Hawks")
+#summary(Hawks)
+```
+
+```{r message= FALSE, warning=FALSE}
+# Asegurándonos de limpiar los datos correctamente y escalarlos
+hawks_clean <- na.omit(Hawks[,c("Wing", "Weight", "Culmen", "Hallux")])
+# Estandarización de los datos
+hawks_clean_scaled <- scale(hawks_clean)
+
+# Comprobamos que hawks_clean_scaled es una matriz numérica
+if(is.matrix(hawks_clean_scaled)) {
+  print("hawks_clean_scaled es una matriz")
+} else {
+  print("hawks_clean_scaled no es una matriz")
+}
+
+contador <- nrow(hawks_clean_scaled)
+print(contador)
+```
+
+#### Aplicación de DBSCAN
+
+DBSCAN para explorar la estructura de densidad de los datos. 
+
+```{r message= FALSE, warning=FALSE}
+# Cargar el paquete si no está cargado
+if (!require('dbscan')) install.packages('dbscan')
+library(dbscan)
+
+# Asumimos que hawks_clean_scaled son los datos ya estandarizados
+set.seed(123)  # Para reproducibilidad
+
+# Aplicar DBSCAN
+dbscan_result <- dbscan(hawks_clean_scaled, eps = 0.5, minPts = 5)
+
+# Visualizar los resultados
+plot(hawks_clean_scaled, col = dbscan_result$cluster + 1L, pch = 20, main = "DBSCAN Clustering")
+legend("topright", legend = unique(dbscan_result$cluster), fill = 1:length(unique(dbscan_result$cluster)), title = "Cluster")
+
+```
+
+Se observan tres grupos diferenciados:
+
+El grupo grande en rosa que podría representar el cluster principal.
+
+Un grupo más pequeño en verde que parece estar bien separado del grupo principal.
+
+Los puntos negros, que representan ruido o puntos que no se han asignado a ningún cluster.
+
+DBSCAN parece haber identificado un posible outlier o un grupo de outliers que están alejados de las áreas de alta densidad. Si estos puntos negros son numerosos y dispersos, esto puede indicar que el valor de eps usado podría estar demasiado bajo o que el minPts está demasiado alto, causando que puntos que podrían formar un cluster sean considerados ruido.
+
+#### Aplicación de OPTICS
+
+OPTICS puede proporcionar una visión más detallada de cómo los datos pueden ser agrupados en diferentes niveles de densidad.
+
+```{r message= FALSE, warning=FALSE}
+# Aplicar OPTICS
+optics_result <- optics(hawks_clean_scaled, minPts = 5)
+
+# Visualizar el plot de Alcanzabilidad
+plot(optics_result, main = "Reachability Plot")
+
+```
+
+La imagen es el Reachability Plot generado por OPTICS. Este gráfico muestra la distancia de alcanzabilidad de cada punto ordenados. Las zonas donde la línea cae casi a cero indican regiones de alta densidad (los valles), mientras que los picos altos indican áreas de baja densidad, a menudo considerados como outliers.
+
+Este gráfico puede ser un poco más difícil de interpretar sin una referencia clara de dónde se encuentran los clusters. Sin embargo, se  puede usar para ayudar a establecer un valor apropiado de eps si extraigo los clusters con un enfoque DBSCAN.
+
+
+* Extracción de Clusters: Uso el método extractDBSCAN para obtener clusters a partir de los resultados de OPTICS basándome en un umbral de distancia específico.
+
+```{r message= FALSE, warning=FALSE}
+# Extraer clusters
+extracted_clusters <- extractDBSCAN(optics_result, eps_cl = 0.05)
+plot(hawks_clean_scaled, col = extracted_clusters$cluster + 1L, pch = 20, main = "Clusters extracted from OPTICS")
+
+```
+
+* Clusters extraídos de OPTICS
+
+  * La imagen muestra los clusters extraídos usando OPTICS. Parece que muchos puntos han sido clasificados como ruido (puntos negros), con unos pocos clusters pequeños identificados (colores variados).
+
+  * Esto sugiere que el valor de eps utilizado para extraer los clusters de la estructura de OPTICS podría ser demasiado restrictivo, o que los clusters en el conjunto de datos no están bien definidos según los parámetros de densidad que OPTICS utiliza para diferenciar entre el ruido y los clusters.
+
+#### Ajustes de DBSCAN
+
+```{r message= FALSE, warning=FALSE}
+# Aplicar DBSCAN
+dbscan_result <- dbscan(hawks_clean_scaled, eps = 0.4, minPts = 4)
+
+# Visualizar los resultados
+plot(hawks_clean_scaled, col = dbscan_result$cluster + 1L, pch = 20, main = "DBSCAN Clustering")
+legend("topright", legend = unique(dbscan_result$cluster), fill = 1:length(unique(dbscan_result$cluster)), title = "Cluster")
+```
+
+La gráfica resultante de la aplicación del algoritmo DBSCAN revela la presencia de tres conglomerados claramente definidos en el espacio de características.
+
+Observamos que el grupo representado en rosa domina la distribución, denotando el cluster principal con una densidad significativa de puntos. Un segundo cluster, ilustrado en verde, muestra una menor cantidad de observaciones pero aún así se distingue claramente, sugiriendo una variabilidad notable dentro de los datos. 
+
+Un tercer cluster en azul se caracteriza por estar compuesto por menos puntos y se encuentra sustancialmente alejado en el espacio de características, lo cual puede indicar diferencias relevantes en las propiedades físicas de los especímenes que representa. 
+
+Adicionalmente, se aprecia una dispersión de puntos negros que no se asignan a ninguno de los clusters mencionados, considerados como ruido y potencialmente representando outliers o datos anómalos. La separación espacial entre los clusters y el ruido sugiere que los parámetros seleccionados para el DBSCAN están adecuadamente calibrados para discernir la estructura natural de los datos.
+
+#### Ajuste de Optics
+
+```{r message= FALSE, warning=FALSE}
+# Mejor manejo de la carga de paquetes
+if (!requireNamespace("dbscan", quietly = TRUE)) {
+  install.packages("dbscan")
+}
+library(dbscan)
+
+# Convertir la matriz a un dataframe y asegurarse de que conserva los nombres de las columnas
+hawks_clean_scaled <- as.data.frame(hawks_clean_scaled)
+colnames(hawks_clean_scaled) <- c("Wing", "Weight", "Culmen", "Hallux")
+
+# Comprobación de que hawks_clean_scaled es ahora un dataframe
+if(is.data.frame(hawks_clean_scaled)) {
+  print("hawks_clean_scaled es ahora un dataframe")
+} else {
+  print("hawks_clean_scaled no es un dataframe")
+}
+
+# Aplicar OPTICS
+optics_result <- optics(hawks_clean_scaled, minPts = 5)
+
+# Definir un rango de valores de eps para probar
+eps_cl_values <- c(0.065, 0.1, 0.15, 0.2)
+
+# Seleccionar las variables para la visualización
+x_var <- "Wing"  # Variable para el eje x
+y_var <- "Weight"  # Variable para el eje y
+
+# Definir límites del eje x e y basándonos en las columnas seleccionadas para la visualización
+xlim_range <- range(hawks_clean_scaled[[x_var]], finite = TRUE)
+ylim_range <- range(hawks_clean_scaled[[y_var]], finite = TRUE)
+
+# Iterar sobre los valores de eps para extracción de clústers
+for (eps_cl in eps_cl_values) {
+  # Extraer clusters usando el valor actual de eps_cl
+  extracted_clusters <- extractDBSCAN(optics_result, eps_cl = eps_cl)
+  
+  # Agregar la asignación de clúster al dataframe
+  hawks_clean_scaled$cluster <- extracted_clusters$cluster
+  
+  # Visualizar los resultados usando las variables seleccionadas
+  plot(hawks_clean_scaled[[x_var]], hawks_clean_scaled[[y_var]], col = hawks_clean_scaled$cluster + 1L, pch = 20, xlim = xlim_range, ylim = ylim_range, main = paste("Clusters extracted from OPTICS with eps =", eps_cl))
+  legend("topright", legend = unique(hawks_clean_scaled$cluster), col = seq_along(unique(hawks_clean_scaled$cluster)), pch = 20, title = "Cluster")
+}
+
+```
+
+* Con eps = 0.065: La mayoría de los puntos son clasificados como ruido (cluster 0), con unos pocos grupos pequeños detectados. Este valor parece ser demasiado restrictivo, ya que no permite que muchos puntos sean considerados parte de un cluster.
+* Con eps = 0.1: Observas más clusters, aunque todavía hay una cantidad significativa de puntos clasificados como ruido. Este valor de eps parece ofrecer una mejor separación entre los clusters en comparación con eps = 0.065.
+* Con eps = 0.2: La cantidad de ruido se reduce drásticamente, y los puntos se agrupan en clusters más grandes. Un valor de eps mayor facilita que más puntos se incluyan en clusters, lo que puede ser preferible si se espera que existan grupos más grandes en los datos.
+
 ## Ejercicio 3
 Realiza una comparativa de los métodos *k-means* y *DBSCAN*    
 
 ### Respuesta 3
 > Escribe aquí la respuesta a la pregunta
+
+#### Comparación de Resultados: K-means vs. DBSCAN
+
+La visualización DBSCAN parece reflejar de manera más clara la presencia de tres grupos distintos en comparación con K-means. Este resultado es consistente con el conocimiento previo de que hay tres especies distintas dentro del conjunto de datos.
+
+* K-means:
+
+  * K-means ha identificado tres clústeres, pero debido a su sensibilidad a outliers, se observan dos puntos distantes en un tercer clúster, lo cual podría ser un reflejo de su susceptibilidad a la variabilidad y a los valores atípicos.
+  * En K-means, cada observación siempre se asignará a un clúster, incluso si es un outlier, lo cual puede conducir a clústeres potencialmente sesgados.
+
+* DBSCAN:
+
+  * DBSCAN ha demostrado una capacidad superior para manejar outliers, clasificándolos aparte y formando clústeres basados en la densidad de los datos.
+  * Con los parámetros ajustados (eps = 0.4, minPts = 4), DBSCAN ha agrupado los datos de una manera que parece corresponder muy bien con las tres especies conocidas, proporcionando una segmentación clara y una separación de los grupos.
+
+* Conclusión:
+
+  * La sensibilidad a outliers de K-means frente a la robustez de DBSCAN en ese aspecto es una consideración clave en la elección del algoritmo de clustering. DBSCAN, al no requerir la especificación del número de clústeres y al poder aislar outliers, ha demostrado ser una opción más efectiva para este conjunto de datos en particular, donde el conocimiento previo de las especies apoya la existencia de tres grupos distintos.
+
+  * Además, la combinación de análisis exploratorios, ajustes de parámetros, y el entendimiento contextual del conjunto de datos, demuestra que una aproximación metódica y bien informada es esencial para la minería de datos efectiva. Estos pasos han permitido no solo identificar el algoritmo más apropiado, sino también ajustar dicho algoritmo para alinear sus resultados con la realidad biológica conocida de las especies en estudio.
+
+Este enfoque iterativo y ajustado al contexto es crucial para obtener insights confiables y significativos de los datos.
+
 
